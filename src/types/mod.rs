@@ -125,6 +125,12 @@ pub enum Event {
     StatusUpdated(SorobanString, TransactionStatus),  // (tx_id, new_status)
     MovedToDlq(SorobanString, SorobanString),         // (tx_id, error_reason)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
-    AssetAdded(SorobanString),\n    AssetRemoved(SorobanString),\n    DlqRetried(SorobanString),\n    MaxRetriesExceeded(SorobanString),\n}\n\nfn generate_id(env: &Env) -> SorobanString {
+    AssetAdded(SorobanString),
+    AssetRemoved(SorobanString),
+    DlqRetried(SorobanString),
+    MaxRetriesExceeded(SorobanString),
+}
+
+fn generate_id(env: &Env) -> SorobanString {
     SorobanString::from_str(env, &soroban_sdk::format!("{}-{}", env.ledger().timestamp(), env.ledger().sequence()))
 }
