@@ -142,11 +142,7 @@ impl SynapseContract {
     // TODO(#32): only admin OR original relayer should be able to retry
     pub fn retry_dlq(env: Env, caller: Address, tx_id: SorobanString) {
         require_admin(&env, &caller);
-        let _ = (env, tx_id);
-        panic!("not implemented")
-    }
-
-    // TODO(#33): verify each tx_id exists and has status Completed
+        let entry = dlq::get(&env, &tx_id).expect("DLQ entry not found");\n        let mut new_entry = entry.clone();\n        new_entry.retry_count += 1;\n        new_entry.last_retry_ledger = env.ledger().sequence();\n        if new_entry.retry_count > types::MAX_RETRIES {\n            emit(&env, Event::MaxRetriesExceeded(tx_id.clone()));\n            panic!("MaxRetriesExceeded");\n        }\n        let mut tx = deposits::get(&env, &tx_id);\n        tx.status = TransactionStatus::Pending;\n        tx.updated_ledger = env.ledger().sequence();\n        deposits::save(&env, &tx);\n        dlq::remove(&env, &tx_id);\n        emit(&env, Event::DlqRetried(tx_id));\n    }\n\n    // TODO(#33): verify each tx_id exists and has status Completed
     // TODO(#34): verify no tx_id is already linked to a settlement
     // TODO(#35): write settlement_id back onto each Transaction
     // TODO(#36): verify total_amount matches sum of tx amounts on-chain

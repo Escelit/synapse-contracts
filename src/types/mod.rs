@@ -1,6 +1,8 @@
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
 
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
+
+pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
 // TODO(#47): add `memo: Option<SorobanString>` field to Transaction
 // TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
@@ -123,10 +125,6 @@ pub enum Event {
     StatusUpdated(SorobanString, TransactionStatus),  // (tx_id, new_status)
     MovedToDlq(SorobanString, SorobanString),         // (tx_id, error_reason)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
-    AssetAdded(SorobanString),
-    AssetRemoved(SorobanString),
-}
-
-fn generate_id(env: &Env) -> SorobanString {
+    AssetAdded(SorobanString),\n    AssetRemoved(SorobanString),\n    DlqRetried(SorobanString),\n    MaxRetriesExceeded(SorobanString),\n}\n\nfn generate_id(env: &Env) -> SorobanString {
     SorobanString::from_str(env, &soroban_sdk::format!("{}-{}", env.ledger().timestamp(), env.ledger().sequence()))
 }

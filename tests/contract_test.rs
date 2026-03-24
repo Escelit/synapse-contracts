@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use soroban_sdk::{testutils::Address as _, Address, Env, String as SorobanString, vec};
-use crate::{SynapseContract, SynapseContractClient};
+use crate::{SynapseContract, SynapseContractClient, types::TransactionStatus};
 
 fn setup(env: &Env) -> (Address, SynapseContractClient) {
     env.mock_all_auths();
@@ -191,18 +191,7 @@ fn mark_failed_creates_dlq_entry() {
 // DLQ retry — TODO(#29)–(#32)
 // ---------------------------------------------------------------------------
 
-#[test]
-#[should_panic(expected = "not implemented")]
-fn retry_dlq_panics_until_implemented() {
-    let env = Env::default();
-    let (admin, client) = setup(&env);
-    client.retry_dlq(&admin, &SorobanString::from_str(&env, "fake-id"));
-}
-
-// TODO(#29): test retry resets status to Pending
-// TODO(#30): test DLQ entry removed after retry
-// TODO(#31): test DlqRetried event emitted
-// TODO(#32): test max retry cap
+}\n\n#[test]\nfn test_retry_dlq_resets_status() {\n    let env = Env::default();\n    let (admin, client) = setup(&env);\n    let relayer = Address::generate(&env);\n    client.grant_relayer(&admin, &relayer);\n    client.add_asset(&admin, &usd(&env));\n    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "retry1"), &Address::generate(&env), &100, &usd(&env));\n    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "test"));\n    let tx_before = client.get_transaction(&tx_id);\n    assert_eq!(tx_before.status, TransactionStatus::Failed);\n    client.retry_dlq(&admin, &tx_id);\n    let tx_after = client.get_transaction(&tx_id);\n    assert_eq!(tx_after.status, TransactionStatus::Pending);\n}\n\n#[test]\n#[should_panic(expected = "MaxRetriesExceeded")]\nfn test_max_retries_exceeded() {\n    let env = Env::default();\n    let (admin, client) = setup(&env);\n    let relayer = Address::generate(&env);\n    client.grant_relayer(&admin, &relayer);\n    client.add_asset(&admin, &usd(&env));\n    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "maxretry"), &Address::generate(&env), &100, &usd(&env));\n    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "fail"));\n    for _ in 0..5u32 {\n        client.retry_dlq(&admin, &tx_id);\n    }\n    client.retry_dlq(&admin, &tx_id);\n}\n\n// TODO(#29): test retry resets status to Pending\n// TODO(#30): test DLQ entry removed after retry\n// TODO(#31): test DlqRetried event emitted\n// TODO(#32): test max retry cap
 
 // ---------------------------------------------------------------------------
 // Settlement — TODO(#33)–(#39)
