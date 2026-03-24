@@ -100,7 +100,14 @@ impl SynapseContract {
             return existing;
         }
 
-        let tx = Transaction::new(&env, anchor_transaction_id.clone(), stellar_account, amount, asset_code);
+        let tx = Transaction::new(
+            &env,
+            anchor_transaction_id.clone(),
+            stellar_account,
+            caller,
+            amount,
+            asset_code,
+        );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
         deposits::index_anchor_id(&env, &anchor_transaction_id, &id);
@@ -232,6 +239,14 @@ mod tests {
         let admin = Address::generate(env);
         client.initialize(&admin);
         (admin, contract_id)
+    }
+
+    #[test]
+    fn test_register_deposit_stores_relayer() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "relayer-on-tx");
+        let tx = client.get_transaction(&tx_id);
+        assert_eq!(tx.relayer, relayer);
     }
 
     fn setup_relayer_deposit<'a>(

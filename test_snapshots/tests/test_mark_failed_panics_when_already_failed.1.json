@@ -351,6 +351,14 @@
                     },
                     {
                       "key": {
+                        "symbol": "relayer"
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                      }
+                    },
+                    {
+                      "key": {
                         "symbol": "settlement_id"
                       },
                       "val": {
@@ -1115,7 +1123,7 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'transaction must be Pending or Processing' from contract function 'Symbol(obj#257)'"
+                  "string": "caught panic 'transaction must be Pending or Processing' from contract function 'Symbol(obj#259)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"

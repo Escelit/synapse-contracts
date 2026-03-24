@@ -351,6 +351,14 @@
                     },
                     {
                       "key": {
+                        "symbol": "relayer"
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                      }
+                    },
+                    {
+                      "key": {
                         "symbol": "settlement_id"
                       },
                       "val": {
@@ -1148,6 +1156,14 @@
                   },
                   "val": {
                     "string": "0"
+                  }
+                },
+                {
+                  "key": {
+                    "symbol": "relayer"
+                  },
+                  "val": {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                   }
                 },
                 {

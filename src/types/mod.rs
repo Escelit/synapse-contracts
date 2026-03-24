@@ -7,7 +7,6 @@ use alloc::format;
 // TODO(#47): add `memo: Option<SorobanString>` field to Transaction
 // TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
 // TODO(#49): add `callback_type: Option<SorobanString>` field to Transaction
-// TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
 #[derive(Clone, PartialEq)]
@@ -24,6 +23,7 @@ pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
     pub stellar_account: Address,
+    pub relayer: Address,
     pub amount: i128,
     pub asset_code: SorobanString,
     pub status: TransactionStatus,
@@ -37,6 +37,7 @@ impl Transaction {
         env: &Env,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
+        relayer: Address,
         amount: i128,
         asset_code: SorobanString,
     ) -> Self {
@@ -45,6 +46,7 @@ impl Transaction {
             id: generate_id(env),
             anchor_transaction_id,
             stellar_account,
+            relayer,
             amount,
             asset_code,
             status: TransactionStatus::Pending,
