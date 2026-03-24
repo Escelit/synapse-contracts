@@ -182,6 +182,10 @@ impl SynapseContract {
     // TODO(#43): add `get_min_deposit()` query
     // TODO(#44): add `get_max_deposit()` query
 
+    pub fn get_admin(env: Env) -> Address {
+        storage::admin::get(&env)
+    }
+
     pub fn is_paused(env: Env) -> bool {
         storage::pause::is_paused(&env)
     }
@@ -239,6 +243,16 @@ mod tests {
         let (emitting_contract, topics, _data) = events.get(0).unwrap();
         assert_eq!(emitting_contract, contract_id);
         assert_eq!(topics, (symbol_short!("synapse"),).into_val(&env));
+    }
+
+    #[test]
+    fn test_get_admin() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        
+        // Should return the admin that was set during initialization
+        assert_eq!(client.get_admin(), admin);
     }
 
     #[test]
