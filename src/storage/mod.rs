@@ -157,6 +157,9 @@ pub mod settlements {
             .get(&StorageKey::Settlement(id.clone()))
             .expect("settlement not found")
     }
+    pub fn extend_ttl(env: &Env, id: &SorobanString) {
+        env.storage().persistent().extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
+    }
 }
 
 pub mod dlq {

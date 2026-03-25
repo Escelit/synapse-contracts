@@ -1,3 +1,4 @@
+use alloc::format;
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
 extern crate alloc;
 use alloc::format;
@@ -12,7 +13,7 @@ pub const MAX_RETRIES: u32 = 5;
 // TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TransactionStatus {
     Pending,
     Processing,
@@ -123,7 +124,7 @@ impl DlqEntry {
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
 // TODO(#57): add `AdminTransferred(Address, Address)` variant
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     Initialized(Address),                                    // (admin)
     DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
