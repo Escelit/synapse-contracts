@@ -117,7 +117,6 @@ impl DlqEntry {
 }
 
 /// Contract events — one variant per state change.
-// TODO(#52): add `RelayerRevoked(Address)` variant
 // TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
 // TODO(#57): add `AdminTransferred(Address, Address)` variant
@@ -126,6 +125,7 @@ impl DlqEntry {
 pub enum Event {
     Initialized(Address),                                    // (admin)
     RelayerGranted(Address),                                 // (relayer)
+    RelayerRevoked(Address),                                 // (relayer)
     DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
     StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
     MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
