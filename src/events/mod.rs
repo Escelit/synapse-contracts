@@ -1,5 +1,5 @@
-use soroban_sdk::{symbol_short, Env};
 use crate::types::Event;
+use soroban_sdk::{symbol_short, Env};
 
 // TODO(#66): include `old_status` in StatusUpdated event payload for full audit trail
 // TODO(#67): include caller address in every event for attribution
