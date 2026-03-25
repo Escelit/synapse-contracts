@@ -139,6 +139,10 @@ pub enum Event {
     StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
 
+    // Pause
+    ContractPaused(Address),                                 // (admin)
+    ContractUnpaused(Address),                               // (admin)
+
     // DLQ
     MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
     DlqRetried(SorobanString),                               // (tx_id)
