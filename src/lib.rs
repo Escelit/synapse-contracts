@@ -237,6 +237,9 @@ impl SynapseContract {
         while i < n {
             let tx_id = tx_ids.get(i).unwrap();
             let tx = deposits::get(&env, &tx_id);
+            if !matches!(tx.status, TransactionStatus::Completed) {
+                panic!("all transactions must be Completed");
+            }
             if tx.settlement_id.len() > 0 {
                 panic!("transaction already settled");
             }
@@ -521,6 +524,8 @@ mod tests {
     fn test_finalize_settlement_writes_settlement_id_back_onto_transactions() {
         let env = Env::default();
         let (client, relayer, tx_id) = setup_relayer_deposit(&env, "settle-backref");
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
         let settlement_id = client.finalize_settlement(
             &relayer,
             &SorobanString::from_str(&env, "USD"),
@@ -583,6 +588,9 @@ mod tests {
             &None,
         );
 
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
+
         let settlement_id = client.finalize_settlement(
             &relayer,
             &asset,
@@ -594,6 +602,57 @@ mod tests {
         assert!(settlement_id.len() > 0);
         let s = client.get_settlement(&settlement_id);
         assert_eq!(s.total_amount, 100i128);
+    }
+
+    #[test]
+    #[should_panic(expected = "all transactions must be Completed")]
+    fn test_finalize_settlement_panics_when_tx_pending() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "fs-not-done-pending");
+        client.finalize_settlement(
+            &relayer,
+            &SorobanString::from_str(&env, "USD"),
+            &vec![&env, tx_id],
+            &1i128,
+            &0u64,
+            &1u64,
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "all transactions must be Completed")]
+    fn test_finalize_settlement_panics_when_tx_processing() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "fs-not-done-processing");
+        client.mark_processing(&relayer, &tx_id);
+        client.finalize_settlement(
+            &relayer,
+            &SorobanString::from_str(&env, "USD"),
+            &vec![&env, tx_id],
+            &1i128,
+            &0u64,
+            &1u64,
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "all transactions must be Completed")]
+    fn test_finalize_settlement_panics_when_tx_failed() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "fs-not-done-failed");
+        client.mark_failed(
+            &relayer,
+            &tx_id,
+            &SorobanString::from_str(&env, "boom"),
+        );
+        client.finalize_settlement(
+            &relayer,
+            &SorobanString::from_str(&env, "USD"),
+            &vec![&env, tx_id],
+            &1i128,
+            &0u64,
+            &1u64,
+        );
     }
 
     #[test]
@@ -617,6 +676,9 @@ mod tests {
             &asset,
             &None,
         );
+
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
 
         env.as_contract(&contract_id, || {
             let p = env.storage().persistent();
