@@ -1,15 +1,9 @@
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
-extern crate alloc;
-use alloc::format;
 
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
 
 pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
-// TODO(#47): add `memo: Option<SorobanString>` field to Transaction
-// TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
-// TODO(#49): add `callback_type: Option<SorobanString>` field to Transaction
-// TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
 #[derive(Clone, PartialEq)]
@@ -26,13 +20,14 @@ pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
     pub stellar_account: Address,
+    pub relayer: Address,
     pub amount: i128,
     pub asset_code: SorobanString,
+    pub memo: Option<SorobanString>,
     pub status: TransactionStatus,
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString, // empty = unsettled
-    pub callback_type: Option<SorobanString>,
 }
 
 impl Transaction {
@@ -40,6 +35,7 @@ impl Transaction {
         env: &Env,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
+        relayer: Address,
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
@@ -49,14 +45,14 @@ impl Transaction {
             id: generate_id(env),
             anchor_transaction_id,
             stellar_account,
+            relayer,
             amount,
             asset_code,
+            memo,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
-            memo,
-            callback_type: None,
         }
     }
 }
@@ -125,27 +121,21 @@ impl DlqEntry {
 #[contracttype]
 #[derive(Clone)]
 pub enum Event {
-    Initialized(Address),                                    // (admin)
-    DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
-    StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
-    MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
+    Initialized(Address),
     DepositRegistered(SorobanString, SorobanString), // (tx_id, anchor_id)
-    StatusUpdated(SorobanString, TransactionStatus),  // (tx_id, new_status)
-    MovedToDlq(SorobanString, SorobanString),         // (tx_id, error_reason)
-    DlqRetried(SorobanString),                        // (tx_id)
+    StatusUpdated(SorobanString, TransactionStatus), // (tx_id, new_status)
+    MovedToDlq(SorobanString, SorobanString),        // (tx_id, error_reason)
+    DlqRetried(SorobanString),
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
-    DlqRetried(SorobanString),
-    MaxRetriesExceeded(SorobanString),
 }
 
 fn generate_id(env: &Env) -> SorobanString {
     let ts = env.ledger().timestamp();
     let seq = env.ledger().sequence() as u64;
     let combined = ts * 1_000_000 + seq;
-    // Format combined u64 as decimal string without std::format!
-    let mut buf = [0u8; 20]; // max u64 is 20 digits
+    let mut buf = [0u8; 20];
     let mut n = combined;
     let mut i = buf.len();
     if n == 0 {
