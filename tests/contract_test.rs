@@ -498,7 +498,33 @@ fn finalize_settlement_emits_per_tx_events() {
     );
 }
 
-// TODO(#33): test that settling a non-Completed tx panics
+#[test]
+#[should_panic(expected = "transaction not completed")]
+fn settle_non_completed_tx_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "settle-pending-1"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+    );
+    // tx is Pending — must panic
+    client.finalize_settlement(
+        &relayer,
+        &usd(&env),
+        &vec![&env, tx_id],
+        &100_000_000,
+        &0u64,
+        &1u64,
+    );
+}
+
+// TODO(#33): test that settling a non-Completed tx panics — DONE
 // TODO(#34): test that settling an already-settled tx panics
 // TODO(#36): test that mismatched total_amount panics
 

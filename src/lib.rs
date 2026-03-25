@@ -239,6 +239,9 @@ impl SynapseContract {
         while i < n {
             let tx_id = tx_ids.get(i).unwrap();
             let tx = deposits::get(&env, &tx_id);
+            if tx.status != TransactionStatus::Completed {
+                panic!("transaction not completed");
+            }
             if tx.settlement_id.len() > 0 {
                 panic!("transaction already settled");
             }
