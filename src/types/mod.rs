@@ -3,10 +3,13 @@ extern crate alloc;
 use alloc::format;
 
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
+
+pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
 // TODO(#47): add `memo: Option<SorobanString>` field to Transaction
 // TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
 // TODO(#49): add `callback_type: Option<SorobanString>` field to Transaction
+// TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
 #[derive(Clone, PartialEq)]
@@ -23,13 +26,13 @@ pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
     pub stellar_account: Address,
-    pub relayer: Address,
     pub amount: i128,
     pub asset_code: SorobanString,
     pub status: TransactionStatus,
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString, // empty = unsettled
+    pub callback_type: Option<SorobanString>,
 }
 
 impl Transaction {
@@ -37,7 +40,6 @@ impl Transaction {
         env: &Env,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
-        relayer: Address,
         amount: i128,
         asset_code: SorobanString,
     ) -> Self {
@@ -46,13 +48,13 @@ impl Transaction {
             id: generate_id(env),
             anchor_transaction_id,
             stellar_account,
-            relayer,
             amount,
             asset_code,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
+            callback_type: None,
         }
     }
 }
@@ -116,7 +118,6 @@ impl DlqEntry {
 // TODO(#51): add `RelayerGranted(Address)` variant
 // TODO(#52): add `RelayerRevoked(Address)` variant
 // TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
-// TODO(#55): add `DlqRetried(SorobanString)` variant
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
 // TODO(#57): add `AdminTransferred(Address, Address)` variant
 #[contracttype]
@@ -126,9 +127,15 @@ pub enum Event {
     DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
     StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
     MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
+    DepositRegistered(SorobanString, SorobanString), // (tx_id, anchor_id)
+    StatusUpdated(SorobanString, TransactionStatus),  // (tx_id, new_status)
+    MovedToDlq(SorobanString, SorobanString),         // (tx_id, error_reason)
+    DlqRetried(SorobanString),                        // (tx_id)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
+    DlqRetried(SorobanString),
+    MaxRetriesExceeded(SorobanString),
 }
 
 fn generate_id(env: &Env) -> SorobanString {

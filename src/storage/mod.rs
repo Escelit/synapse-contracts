@@ -8,16 +8,12 @@ use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 const TX_TTL_THRESHOLD: u32 = 17_280;
 const TX_TTL_EXTEND_TO: u32 = 172_800;
 
-/// Upper bound on allowlisted assets (instance storage keys per asset).
-pub const MAX_ASSETS: u32 = 20;
-
 #[contracttype]
 pub enum StorageKey {
     Admin,
     Paused,
     MinDeposit,
     MaxDeposit,
-    AssetCount,
     Relayer(Address),
     Asset(SorobanString),
     Tx(SorobanString),
@@ -74,18 +70,6 @@ pub mod relayers {
 
 pub mod assets {
     use super::*;
-
-    pub fn count(env: &Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&StorageKey::AssetCount)
-            .unwrap_or(0u32)
-    }
-
-    fn set_count(env: &Env, n: u32) {
-        env.storage().instance().set(&StorageKey::AssetCount, &n);
-    }
-
     pub fn add(env: &Env, code: &SorobanString) {
         if is_allowed(env, code) {
             return;
@@ -106,6 +90,10 @@ pub mod assets {
             .instance()
             .remove(&StorageKey::Asset(code.clone()));
         set_count(env, count(env).saturating_sub(1));
+        env.storage().instance().set(&StorageKey::Asset(code.clone()), &true);
+    }
+    pub fn remove(env: &Env, code: &SorobanString) {
+        env.storage().instance().remove(&StorageKey::Asset(code.clone()));
     }
     pub fn is_allowed(env: &Env, code: &SorobanString) -> bool {
         env.storage()
@@ -116,6 +104,18 @@ pub mod assets {
         if !is_allowed(env, code) {
             panic!("asset not allowed")
         }
+    }
+}
+
+pub mod max_deposit {
+    use super::*;
+
+    pub fn set(env: &Env, amount: &i128) {
+        env.storage().instance().set(&StorageKey::MaxDeposit, amount);
+    }
+
+    pub fn get(env: &Env) -> i128 {
+        env.storage().instance().get(&StorageKey::MaxDeposit).unwrap_or(&0i128).clone()
     }
 }
 
@@ -135,11 +135,7 @@ pub mod deposits {
             .expect("tx not found")
     }
     pub fn index_anchor_id(env: &Env, anchor_id: &SorobanString, tx_id: &SorobanString) {
-        let key = StorageKey::AnchorIdx(anchor_id.clone());
-        env.storage().persistent().set(&key, tx_id);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
+        env.storage().persistent().set(&StorageKey::AnchorIdx(anchor_id.clone()), tx_id);
     }
     pub fn find_by_anchor_id(env: &Env, anchor_id: &SorobanString) -> Option<SorobanString> {
         env.storage()

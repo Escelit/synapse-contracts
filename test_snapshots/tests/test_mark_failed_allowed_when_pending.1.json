@@ -351,6 +351,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "memo"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "relayer"
                       },
                       "val": {
@@ -1157,6 +1163,12 @@
                   "val": {
                     "string": "0"
                   }
+                },
+                {
+                  "key": {
+                    "symbol": "memo"
+                  },
+                  "val": "void"
                 },
                 {
                   "key": {
