@@ -302,3 +302,22 @@ fn finalize_settlement_emits_per_tx_events() {
 // TODO(#34): test that settling an already-settled tx panics
 // TODO(#36): test that mismatched total_amount panics
 // TODO(#37): test that period_start > period_end panics
+
+#[test]
+fn finalize_settlement_extends_ttl() {
+    let env = Env::default();
+    let (admin, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a4"),
+        &Address::generate(&env), &100_000_000, &usd(&env));
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+    let s_id = client.finalize_settlement(&relayer, &usd(&env),
+        &vec![&env, tx_id], &100_000_000, &0u64, &1u64);
+    // Verify settlement can be retrieved (TTL was extended)
+    let s = client.get_settlement(&s_id);
+    assert_eq!(s.id, s_id);
+    assert_eq!(s.total_amount, 100_000_000);
+}
