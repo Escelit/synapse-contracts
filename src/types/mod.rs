@@ -34,6 +34,8 @@ pub struct Transaction {
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString, // empty = unsettled
+    pub memo: Option<SorobanString>,
+    pub memo_type: Option<SorobanString>,
     pub callback_type: Option<SorobanString>,
 }
 
@@ -60,6 +62,7 @@ impl Transaction {
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
             memo,
+            memo_type: None,
             callback_type: None,
         }
     }

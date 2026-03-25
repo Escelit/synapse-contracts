@@ -74,13 +74,9 @@ pub mod assets {
         if is_allowed(env, code) {
             return;
         }
-        if count(env) >= MAX_ASSETS {
-            panic!("max assets reached")
-        }
         env.storage()
             .instance()
             .set(&StorageKey::Asset(code.clone()), &true);
-        set_count(env, count(env) + 1);
     }
     pub fn remove(env: &Env, code: &SorobanString) {
         if !is_allowed(env, code) {
@@ -117,7 +113,7 @@ pub mod max_deposit {
     }
 
     pub fn get(env: &Env) -> i128 {
-        env.storage().instance().get(&StorageKey::MaxDeposit).unwrap_or(&0i128).clone()
+        env.storage().instance().get(&StorageKey::MaxDeposit).unwrap_or(0i128)
     }
 }
 
