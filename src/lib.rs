@@ -197,7 +197,6 @@ impl SynapseContract {
         emit(&env, Event::MovedToDlq(tx_id, error_reason));
     }
 
-    // TODO(#29): increment retry_count on DlqEntry
     // TODO(#31): emit `DlqRetried` event
     pub fn retry_dlq(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
