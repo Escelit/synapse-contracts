@@ -148,6 +148,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
     }
 
     pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
+        require_not_paused(&env);
         require_admin(&env, &caller);
         if amount <= 0 {
             panic!("max deposit must be positive")

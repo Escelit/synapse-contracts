@@ -94,10 +94,70 @@ fn pause_and_unpause() {
     // TODO(#42): assert client.is_paused() == false
 }
 
+// ---------------------------------------------------------------------------
+// Paused mutating calls — issue #70 (depends on #63 / #10)
+// ---------------------------------------------------------------------------
+
 #[test]
-#[should_panic]
-fn mutating_call_while_paused_panics() {
-    // TODO(#63): wire require_not_paused, then enable this test
+#[should_panic(expected = "contract paused")]
+fn grant_relayer_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.pause(&admin);
+    client.grant_relayer(&admin, &Address::generate(&env));
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn revoke_relayer_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.pause(&admin);
+    client.revoke_relayer(&admin, &relayer);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn transfer_admin_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.pause(&admin);
+    client.transfer_admin(&admin, &Address::generate(&env));
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn add_asset_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.pause(&admin);
+    client.add_asset(&admin, &SorobanString::from_str(&env, "EUR"));
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn remove_asset_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.add_asset(&admin, &usd(&env));
+    client.pause(&admin);
+    client.remove_asset(&admin, &usd(&env));
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn set_max_deposit_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.pause(&admin);
+    client.set_max_deposit(&admin, &500_000_000);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn register_deposit_panics_when_paused() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
@@ -106,11 +166,126 @@ fn mutating_call_while_paused_panics() {
     client.pause(&admin);
     client.register_deposit(
         &relayer,
-        &SorobanString::from_str(&env, "a1"),
+        &SorobanString::from_str(&env, "paused-reg"),
         &Address::generate(&env),
         &100_000_000,
         &usd(&env),
         &None,
+    );
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn mark_processing_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "paused-mproc"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.pause(&admin);
+    client.mark_processing(&relayer, &tx_id);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn mark_completed_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "paused-mdone"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.mark_processing(&relayer, &tx_id);
+    client.pause(&admin);
+    client.mark_completed(&relayer, &tx_id);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn mark_failed_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "paused-fail"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.pause(&admin);
+    client.mark_failed(
+        &relayer,
+        &tx_id,
+        &SorobanString::from_str(&env, "boom"),
+    );
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn retry_dlq_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "paused-dlq"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+    client.pause(&admin);
+    client.retry_dlq(&admin, &tx_id);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn finalize_settlement_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "paused-fin"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+    client.pause(&admin);
+    client.finalize_settlement(
+        &relayer,
+        &usd(&env),
+        &vec![&env, tx_id],
+        &100_000_000,
+        &0u64,
+        &1u64,
     );
 }
 
