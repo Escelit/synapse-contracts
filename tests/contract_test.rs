@@ -1,7 +1,11 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::{Address as _, Events as _}, Address, Env, String as SorobanString, vec};
-use synapse_contract::{SynapseContract, SynapseContractClient};
+use soroban_sdk::{
+    symbol_short,
+    testutils::{Address as _, Events as _},
+    vec, Address, Env, IntoVal, String as SorobanString, TryFromVal, Val,
+};
+use synapse_contract::{types::Event, SynapseContract, SynapseContractClient};
 
 fn setup(env: &Env) -> (Address, Address, SynapseContractClient<'_>) {
     env.mock_all_auths();
@@ -364,9 +368,22 @@ fn original_relayer_can_retry_dlq() {
 #[should_panic]
 fn unrelated_relayer_cannot_retry_dlq() {
     let env = Env::default();
-    let (_, _, client) = setup(&env);
-    let rando = Address::generate(&env);
-    client.retry_dlq(&rando, &SorobanString::from_str(&env, "fake-id"));
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    let other_relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.grant_relayer(&admin, &other_relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "retry-auth"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "timeout"));
+    client.retry_dlq(&other_relayer, &tx_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -412,8 +429,13 @@ fn finalize_settlement_emits_per_tx_events() {
 
     let tx_id_1 = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a4"),
         &Address::generate(&env), &40_000_000, &usd(&env), &None);
+    client.mark_processing(&relayer, &tx_id_1);
+    client.mark_completed(&relayer, &tx_id_1);
+
     let tx_id_2 = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a5"),
         &Address::generate(&env), &60_000_000, &usd(&env), &None);
+    client.mark_processing(&relayer, &tx_id_2);
+    client.mark_completed(&relayer, &tx_id_2);
 
     let _settlement_id = client.finalize_settlement(
         &relayer,
@@ -445,11 +467,13 @@ fn finalize_settlement_succeeds_with_correct_total() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
-    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a6"),
+    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a4"),
         &Address::generate(&env), &100_000_000, &usd(&env), &None);
-    let s_id = client.finalize_settlement(
-        &relayer, &usd(&env), &vec![&env, tx_id], &100_000_000, &0u64, &1u64,
-    );
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+    let s_id = client.finalize_settlement(&relayer, &usd(&env),
+        &vec![&env, tx_id], &100_000_000, &0u64, &1u64);
+    // Verify settlement can be retrieved (TTL was extended)
     let s = client.get_settlement(&s_id);
     assert_eq!(s.total_amount, 100_000_000);
 }

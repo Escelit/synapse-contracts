@@ -116,7 +116,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "failed-initially"
@@ -129,28 +129,7 @@
       ]
     ],
     [],
-    [
-      [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
-        {
-          "function": {
-            "contract_fn": {
-              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-              "function_name": "retry_dlq",
-              "args": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                },
-                {
-                  "string": "0"
-                }
-              ]
-            }
-          },
-          "sub_invocations": []
-        }
-      ]
-    ],
+    [],
     [],
     []
   ],
@@ -200,7 +179,7 @@
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               }
             },
@@ -219,7 +198,7 @@
                   "symbol": "Dlq"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -239,7 +218,7 @@
                       "symbol": "Dlq"
                     },
                     {
-                      "string": "0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -283,7 +262,7 @@
                         "symbol": "tx_id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     }
                   ]
@@ -305,7 +284,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -325,7 +304,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -378,7 +357,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     },
                     {
@@ -392,6 +371,14 @@
                         "symbol": "memo_type"
                       },
                       "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "relayer"
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                      }
                     },
                     {
                       "key": {
@@ -577,39 +564,6 @@
             "ext": "v0"
           },
           6311999
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
-            "key": {
-              "ledger_key_nonce": {
-                "nonce": 4270020994084947596
-              }
-            },
-            "durability": "temporary"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
-                "key": {
-                  "ledger_key_nonce": {
-                    "nonce": 4270020994084947596
-                  }
-                },
-                "durability": "temporary",
-                "val": "void"
-              }
-            },
-            "ext": "v0"
-          },
-          6312099
         ]
       ],
       [
@@ -846,6 +800,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -1008,7 +989,7 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "retry-tx"
@@ -1036,7 +1017,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1067,7 +1048,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "failed-initially"
@@ -1097,7 +1078,7 @@
                   "symbol": "MovedToDlq"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "failed-initially"
@@ -1149,7 +1130,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1219,7 +1200,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "0"
+                    "string": "15ec7bf0b50732b49f8228e07d243653"
                   }
                 },
                 {
@@ -1233,6 +1214,14 @@
                     "symbol": "memo_type"
                   },
                   "val": "void"
+                },
+                {
+                  "key": {
+                    "symbol": "relayer"
+                  },
+                  "val": {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                  }
                 },
                 {
                   "key": {
@@ -1301,7 +1290,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             }
@@ -1328,7 +1317,7 @@
                   "symbol": "StatusUpdated"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "vec": [
@@ -1384,7 +1373,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1454,7 +1443,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "0"
+                    "string": "15ec7bf0b50732b49f8228e07d243653"
                   }
                 },
                 {
@@ -1468,6 +1457,14 @@
                     "symbol": "memo_type"
                   },
                   "val": "void"
+                },
+                {
+                  "key": {
+                    "symbol": "relayer"
+                  },
+                  "val": {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                  }
                 },
                 {
                   "key": {

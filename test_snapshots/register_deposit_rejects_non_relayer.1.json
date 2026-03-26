@@ -237,6 +237,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "Initialized"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -372,7 +399,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -395,7 +423,7 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'not relayer' from contract function 'Symbol(obj#47)'"
+                  "string": "caught panic 'not relayer' from contract function 'Symbol(obj#61)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
@@ -414,7 +442,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -491,7 +520,8 @@
                     },
                     {
                       "string": "USD"
-                    }
+                    },
+                    "void"
                   ]
                 }
               ]

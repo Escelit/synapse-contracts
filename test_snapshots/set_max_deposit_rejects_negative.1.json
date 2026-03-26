@@ -226,11 +226,21 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
               },
               {
-                "symbol": "initialize"
+                "symbol": "set_max_deposit"
               }
             ],
             "data": {
-              "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+              "vec": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "i128": {
+                    "hi": -1,
+                    "lo": 18446744073709551615
+                  }
+                }
+              ]
             }
           }
         }
@@ -252,10 +262,16 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'already initialised' from contract function 'Symbol(obj#27)'"
+                  "string": "caught panic 'max deposit must be positive' from contract function 'Symbol(obj#27)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "i128": {
+                    "hi": -1,
+                    "lo": 18446744073709551615
+                  }
                 }
               ]
             }
@@ -312,12 +328,18 @@
                   "string": "contract call failed"
                 },
                 {
-                  "symbol": "initialize"
+                  "symbol": "set_max_deposit"
                 },
                 {
                   "vec": [
                     {
                       "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                    },
+                    {
+                      "i128": {
+                        "hi": -1,
+                        "lo": 18446744073709551615
+                      }
                     }
                   ]
                 }

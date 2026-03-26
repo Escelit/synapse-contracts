@@ -259,7 +259,7 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'address is not a relayer' from contract function 'Symbol(obj#27)'"
+                  "string": "caught panic 'address is not a relayer' from contract function 'Symbol(obj#29)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
