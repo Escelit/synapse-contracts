@@ -119,6 +119,7 @@ impl SynapseContract {
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
+        callback_type: Option<SorobanString>,
     ) -> SorobanString {
         require_not_paused(&env);
         require_relayer(&env, &caller);
@@ -140,6 +141,7 @@ impl SynapseContract {
             amount,
             asset_code,
             memo,
+            callback_type,
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
@@ -344,6 +346,33 @@ mod tests {
         let _ = tx;
     }
     #[test]
+    fn test_register_deposit_stores_callback_type() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+        let anchor_id = SorobanString::from_str(&env, "cb-type-stored");
+        let cb_type = SorobanString::from_str(&env, "deposit");
+
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &asset);
+        let tx_id = client.register_deposit(
+            &relayer,
+            &anchor_id,
+            &stellar,
+            &100i128,
+            &asset,
+            &None,
+            &Some(cb_type.clone()),
+        );
+
+        let tx = client.get_transaction(&tx_id);
+        assert_eq!(tx.callback_type, Some(cb_type));
+    }
+
+    #[test]
     fn test_register_deposit_stores_memo() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);
@@ -363,6 +392,7 @@ mod tests {
             &100i128,
             &asset,
             &Some(memo.clone()),
+            &None,
         );
 
         let tx = client.get_transaction(&tx_id);
@@ -381,7 +411,7 @@ mod tests {
         let anchor_id = SorobanString::from_str(env, anchor_label);
         client.grant_relayer(&admin, &relayer);
         client.add_asset(&admin, &asset);
-        let tx_id = client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None);
+        let tx_id = client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None);
         (client, relayer, tx_id)
     }
 
@@ -584,6 +614,7 @@ mod tests {
             &100i128,
             &asset,
             &None,
+            &None,
         );
 
         let settlement_id = client.finalize_settlement(
@@ -618,6 +649,7 @@ mod tests {
             &stellar,
             &100i128,
             &asset,
+            &None,
             &None,
         );
 

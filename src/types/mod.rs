@@ -8,7 +8,6 @@ pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
 // TODO(#47): add `memo: Option<SorobanString>` field to Transaction
 // TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
-// TODO(#49): add `callback_type: Option<SorobanString>` field to Transaction
 // TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
@@ -47,6 +46,7 @@ impl Transaction {
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
+        callback_type: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
@@ -62,7 +62,7 @@ impl Transaction {
             settlement_id: SorobanString::from_str(env, ""),
             memo,
             memo_type: None,
-            callback_type: None,
+            callback_type,
         }
     }
 }
