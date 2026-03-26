@@ -223,7 +223,7 @@ impl SynapseContract {
         entry.last_retry_ledger = env.ledger().sequence();
 
         deposits::save(&env, &tx);
-        dlq::push(&env, &entry);
+        dlq::remove(&env, &tx_id);
 
         emit(&env, Event::StatusUpdated(tx_id, TransactionStatus::Pending));
     }
@@ -647,12 +647,31 @@ mod tests {
         let tx = client.get_transaction(&tx_id);
         assert!(matches!(tx.status, TransactionStatus::Pending));
         assert_eq!(tx.updated_ledger, 100);
+    }
 
-        let entry = env.as_contract(&contract_id, || {
-            storage::dlq::get(&env, &tx_id).unwrap()
-        });
-        assert_eq!(entry.retry_count, 1);
-        assert_eq!(entry.last_retry_ledger, 100);
+    #[test]
+    fn test_retry_dlq_removes_dlq_entry() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &asset);
+        let tx_id = client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "retry-remove"),
+            &stellar,
+            &1i128,
+            &asset,
+            &None,
+            &None,
+        );
+        client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+        client.retry_dlq(&admin, &tx_id);
+        let entry = env.as_contract(&contract_id, || storage::dlq::get(&env, &tx_id));
+        assert!(entry.is_none());
     }
 
     #[test]
