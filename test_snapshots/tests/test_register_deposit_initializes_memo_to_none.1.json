@@ -80,7 +80,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "memo-on-tx"
+                  "string": "memo-none"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -94,6 +94,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -124,7 +125,7 @@
                   "symbol": "AnchorIdx"
                 },
                 {
-                  "string": "memo-on-tx"
+                  "string": "memo-none"
                 }
               ]
             },
@@ -144,7 +145,7 @@
                       "symbol": "AnchorIdx"
                     },
                     {
-                      "string": "memo-on-tx"
+                      "string": "memo-none"
                     }
                   ]
                 },
@@ -212,7 +213,7 @@
                         "symbol": "anchor_transaction_id"
                       },
                       "val": {
-                        "string": "memo-on-tx"
+                        "string": "memo-none"
                       }
                     },
                     {
@@ -242,6 +243,12 @@
                     {
                       "key": {
                         "symbol": "memo"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo_type"
                       },
                       "val": "void"
                     },
@@ -774,7 +781,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "memo-on-tx"
+                  "string": "memo-none"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -788,6 +795,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -817,7 +825,7 @@
                   "string": "0"
                 },
                 {
-                  "string": "memo-on-tx"
+                  "string": "memo-none"
                 }
               ]
             }
@@ -908,7 +916,7 @@
                     "symbol": "anchor_transaction_id"
                   },
                   "val": {
-                    "string": "memo-on-tx"
+                    "string": "memo-none"
                   }
                 },
                 {
@@ -938,6 +946,12 @@
                 {
                   "key": {
                     "symbol": "memo"
+                  },
+                  "val": "void"
+                },
+                {
+                  "key": {
+                    "symbol": "memo_type"
                   },
                   "val": "void"
                 },

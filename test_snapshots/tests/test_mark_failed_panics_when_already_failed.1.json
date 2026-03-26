@@ -94,6 +94,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -115,7 +116,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "first"
@@ -140,7 +141,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "second"
@@ -200,7 +201,7 @@
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               }
             },
@@ -219,7 +220,7 @@
                   "symbol": "Dlq"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             },
@@ -239,7 +240,7 @@
                       "symbol": "Dlq"
                     },
                     {
-                      "string": "0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -283,7 +284,7 @@
                         "symbol": "tx_id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
                     }
                   ]
@@ -305,7 +306,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             },
@@ -325,7 +326,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -378,7 +379,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
                     },
                     {
@@ -392,6 +393,14 @@
                         "symbol": "memo_type"
                       },
                       "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "relayer"
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                      }
                     },
                     {
                       "key": {
@@ -461,6 +470,14 @@
                       "wasm": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
                     },
                     "storage": [
+                      {
+                        "key": {
+                          "symbol": "txnonce"
+                        },
+                        "val": {
+                          "u32": 1
+                        }
+                      },
                       {
                         "key": {
                           "vec": [
@@ -846,6 +863,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -982,6 +1026,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -1008,7 +1053,7 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "mf-twice"
@@ -1036,7 +1081,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "374708fff7719dd5979ec875d56cd228"
             }
           }
         }
@@ -1067,7 +1112,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "first"
@@ -1097,7 +1142,7 @@
                   "symbol": "MovedToDlq"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "first"
@@ -1154,7 +1199,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "second"
@@ -1184,7 +1229,7 @@
                   "symbol": "MovedToDlq"
                 },
                 {
-                  "string": "0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "second"
@@ -1236,7 +1281,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "374708fff7719dd5979ec875d56cd228"
             }
           }
         }
@@ -1306,7 +1351,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "0"
+                    "string": "374708fff7719dd5979ec875d56cd228"
                   }
                 },
                 {
@@ -1320,6 +1365,14 @@
                     "symbol": "memo_type"
                   },
                   "val": "void"
+                },
+                {
+                  "key": {
+                    "symbol": "relayer"
+                  },
+                  "val": {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                  }
                 },
                 {
                   "key": {

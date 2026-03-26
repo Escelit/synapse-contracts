@@ -1853,12 +1853,7 @@
                 "symbol": "get_max_deposit"
               }
             ],
-            "data": {
-              "i128": {
-                "hi": 0,
-                "lo": 0
-              }
-            }
+            "data": "void"
           }
         }
       },
