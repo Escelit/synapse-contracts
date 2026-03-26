@@ -1,6 +1,5 @@
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
-
-// TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
+use alloc::string::ToString;
 
 pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
@@ -153,15 +152,9 @@ pub enum Event {
     AssetRemoved(SorobanString),
 }
 
-fn generate_id(env: &Env, _anchor_transaction_id: &SorobanString) -> SorobanString {
-    let ts = env.ledger().timestamp();
-    let seq = env.ledger().sequence();
-    let mut data = [0u8; 12];
-    data[..8].copy_from_slice(&ts.to_be_bytes());
-    data[8..12].copy_from_slice(&seq.to_be_bytes());
-    let hash = env
-        .crypto()
-        .sha256(&soroban_sdk::Bytes::from_slice(env, &data));
+fn generate_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
+    let data = soroban_sdk::Bytes::from_slice(env, anchor_transaction_id.to_string().as_bytes());
+    let hash = env.crypto().sha256(&data);
     let bytes = hash.to_array();
     let mut hex = [0u8; 32];
     const HEX: &[u8] = b"0123456789abcdef";
