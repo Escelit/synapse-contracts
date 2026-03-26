@@ -159,7 +159,7 @@
             },
             "ext": "v0"
           },
-          172800
+          4095
         ]
       ],
       [
@@ -228,6 +228,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -255,14 +261,6 @@
                         "symbol": "memo_type"
                       },
                       "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "relayer"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                      }
                     },
                     {
                       "key": {
@@ -357,18 +355,6 @@
                         },
                         "val": {
                           "bool": true
-                        }
-                      },
-                      {
-                        "key": {
-                          "vec": [
-                            {
-                              "symbol": "AssetCount"
-                            }
-                          ]
-                        },
-                        "val": {
-                          "u32": 1
                         }
                       },
                       {
@@ -935,6 +921,12 @@
                 },
                 {
                   "key": {
+                    "symbol": "callback_type"
+                  },
+                  "val": "void"
+                },
+                {
+                  "key": {
                     "symbol": "created_ledger"
                   },
                   "val": {
@@ -962,14 +954,6 @@
                     "symbol": "memo_type"
                   },
                   "val": "void"
-                },
-                {
-                  "key": {
-                    "symbol": "relayer"
-                  },
-                  "val": {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                  }
                 },
                 {
                   "key": {

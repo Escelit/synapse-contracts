@@ -94,7 +94,6 @@
                 {
                   "string": "USD"
                 },
-                "void",
                 "void"
               ]
             }
@@ -158,7 +157,7 @@
             },
             "ext": "v0"
           },
-          172800
+          4095
         ]
       ],
       [
@@ -227,6 +226,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -252,14 +257,6 @@
                         "symbol": "memo_type"
                       },
                       "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "relayer"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                      }
                     },
                     {
                       "key": {
@@ -354,18 +351,6 @@
                         },
                         "val": {
                           "bool": true
-                        }
-                      },
-                      {
-                        "key": {
-                          "vec": [
-                            {
-                              "symbol": "AssetCount"
-                            }
-                          ]
-                        },
-                        "val": {
-                          "u32": 1
                         }
                       },
                       {
@@ -796,7 +781,6 @@
                 {
                   "string": "USD"
                 },
-                "void",
                 "void"
               ]
             }
@@ -925,7 +909,7 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'transaction already settled' from contract function 'Symbol(obj#213)'"
+                  "string": "caught panic 'transaction already settled' from contract function 'Symbol(obj#199)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"

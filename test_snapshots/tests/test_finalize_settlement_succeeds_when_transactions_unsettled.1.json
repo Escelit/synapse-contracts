@@ -94,7 +94,6 @@
                 {
                   "string": "USD"
                 },
-                "void",
                 "void"
               ]
             }
@@ -198,7 +197,7 @@
             },
             "ext": "v0"
           },
-          172800
+          4095
         ]
       ],
       [
@@ -376,6 +375,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -404,18 +409,10 @@
                     },
                     {
                       "key": {
-                        "symbol": "relayer"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                      }
-                    },
-                    {
-                      "key": {
                         "symbol": "settlement_id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": ""
                       }
                     },
                     {
@@ -503,18 +500,6 @@
                         },
                         "val": {
                           "bool": true
-                        }
-                      },
-                      {
-                        "key": {
-                          "vec": [
-                            {
-                              "symbol": "AssetCount"
-                            }
-                          ]
-                        },
-                        "val": {
-                          "u32": 1
                         }
                       },
                       {
@@ -978,7 +963,6 @@
                 {
                   "string": "USD"
                 },
-                "void",
                 "void"
               ]
             }
