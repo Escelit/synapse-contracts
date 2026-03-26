@@ -1,6 +1,6 @@
 {
   "generators": {
-    "address": 4,
+    "address": 2,
     "nonce": 0
   },
   "auth": [
@@ -35,190 +35,6 @@
     "min_temp_entry_ttl": 16,
     "max_entry_ttl": 6312000,
     "ledger_entries": [
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-            "key": {
-              "vec": [
-                {
-                  "symbol": "AnchorIdx"
-                },
-                {
-                  "string": "period-order"
-                }
-              ]
-            },
-            "durability": "persistent"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-                "key": {
-                  "vec": [
-                    {
-                      "symbol": "AnchorIdx"
-                    },
-                    {
-                      "string": "period-order"
-                    }
-                  ]
-                },
-                "durability": "persistent",
-                "val": {
-                  "string": "0"
-                }
-              }
-            },
-            "ext": "v0"
-          },
-          172800
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-            "key": {
-              "vec": [
-                {
-                  "symbol": "Tx"
-                },
-                {
-                  "string": "0"
-                }
-              ]
-            },
-            "durability": "persistent"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-                "key": {
-                  "vec": [
-                    {
-                      "symbol": "Tx"
-                    },
-                    {
-                      "string": "0"
-                    }
-                  ]
-                },
-                "durability": "persistent",
-                "val": {
-                  "map": [
-                    {
-                      "key": {
-                        "symbol": "amount"
-                      },
-                      "val": {
-                        "i128": {
-                          "hi": 0,
-                          "lo": 1
-                        }
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "anchor_transaction_id"
-                      },
-                      "val": {
-                        "string": "period-order"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "asset_code"
-                      },
-                      "val": {
-                        "string": "USD"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "created_ledger"
-                      },
-                      "val": {
-                        "u32": 0
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "id"
-                      },
-                      "val": {
-                        "string": "0"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "memo"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "relayer"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "settlement_id"
-                      },
-                      "val": {
-                        "string": ""
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "status"
-                      },
-                      "val": {
-                        "vec": [
-                          {
-                            "symbol": "Pending"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "stellar_account"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "updated_ledger"
-                      },
-                      "val": {
-                        "u32": 0
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            "ext": "v0"
-          },
-          172800
-        ]
-      ],
       [
         {
           "contract_data": {
@@ -410,31 +226,19 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
               },
               {
-                "symbol": "finalize_settlement"
+                "symbol": "set_max_deposit"
               }
             ],
             "data": {
               "vec": [
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                },
-                {
-                  "string": "USD"
-                },
-                {
-                  "vec": []
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
                 },
                 {
                   "i128": {
-                    "hi": 0,
-                    "lo": 0
+                    "hi": -1,
+                    "lo": 18446744073709551615
                   }
-                },
-                {
-                  "u64": 2
-                },
-                {
-                  "u64": 1
                 }
               ]
             }
@@ -458,28 +262,16 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'not relayer' from contract function 'Symbol(obj#33)'"
+                  "string": "caught panic 'max deposit must be positive' from contract function 'Symbol(obj#27)'"
                 },
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                },
-                {
-                  "string": "USD"
-                },
-                {
-                  "vec": []
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
                 },
                 {
                   "i128": {
-                    "hi": 0,
-                    "lo": 0
+                    "hi": -1,
+                    "lo": 18446744073709551615
                   }
-                },
-                {
-                  "u64": 2
-                },
-                {
-                  "u64": 1
                 }
               ]
             }
@@ -536,30 +328,18 @@
                   "string": "contract call failed"
                 },
                 {
-                  "symbol": "finalize_settlement"
+                  "symbol": "set_max_deposit"
                 },
                 {
                   "vec": [
                     {
-                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                    },
-                    {
-                      "string": "USD"
-                    },
-                    {
-                      "vec": []
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
                     },
                     {
                       "i128": {
-                        "hi": 0,
-                        "lo": 0
+                        "hi": -1,
+                        "lo": 18446744073709551615
                       }
-                    },
-                    {
-                      "u64": 2
-                    },
-                    {
-                      "u64": 1
                     }
                   ]
                 }

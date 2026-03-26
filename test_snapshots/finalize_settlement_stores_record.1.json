@@ -93,7 +93,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           },
@@ -114,7 +115,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             }
@@ -136,7 +137,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             }
@@ -163,7 +164,7 @@
                 {
                   "vec": [
                     {
-                      "string": "0-0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -234,7 +235,7 @@
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               }
             },
@@ -253,7 +254,7 @@
                   "symbol": "Settlement"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             },
@@ -273,7 +274,7 @@
                       "symbol": "Settlement"
                     },
                     {
-                      "string": "0-0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -301,7 +302,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0-0"
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
                     },
                     {
@@ -338,7 +339,7 @@
                       "val": {
                         "vec": [
                           {
-                            "string": "0-0"
+                            "string": "374708fff7719dd5979ec875d56cd228"
                           }
                         ]
                       }
@@ -362,7 +363,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             },
@@ -382,7 +383,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0-0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -418,6 +419,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -429,8 +436,20 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0-0"
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo_type"
+                      },
+                      "val": "void"
                     },
                     {
                       "key": {
@@ -445,7 +464,7 @@
                         "symbol": "settlement_id"
                       },
                       "val": {
-                        "string": ""
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
                     },
                     {
@@ -482,7 +501,7 @@
             },
             "ext": "v0"
           },
-          4095
+          172800
         ]
       ],
       [
@@ -508,6 +527,22 @@
                       "wasm": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
                     },
                     "storage": [
+                      {
+                        "key": {
+                          "symbol": "stlnonce"
+                        },
+                        "val": {
+                          "u32": 1
+                        }
+                      },
+                      {
+                        "key": {
+                          "symbol": "txnonce"
+                        },
+                        "val": {
+                          "u32": 1
+                        }
+                      },
                       {
                         "key": {
                           "vec": [
@@ -845,6 +880,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "Initialized"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -884,6 +946,33 @@
               "vec": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -1034,7 +1123,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -1060,7 +1150,7 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "a3"
@@ -1088,7 +1178,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "374708fff7719dd5979ec875d56cd228"
             }
           }
         }
@@ -1119,7 +1209,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             }
@@ -1146,7 +1236,7 @@
                   "symbol": "StatusUpdated"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "vec": [
@@ -1207,7 +1297,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             }
@@ -1234,7 +1324,7 @@
                   "symbol": "StatusUpdated"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "vec": [
@@ -1300,7 +1390,7 @@
                 {
                   "vec": [
                     {
-                      "string": "0-0"
+                      "string": "374708fff7719dd5979ec875d56cd228"
                     }
                   ]
                 },
@@ -1341,10 +1431,10 @@
                   "symbol": "Settled"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 }
               ]
             }
@@ -1371,7 +1461,7 @@
                   "symbol": "SettlementFinalized"
                 },
                 {
-                  "string": "0-0"
+                  "string": "374708fff7719dd5979ec875d56cd228"
                 },
                 {
                   "string": "USD"
@@ -1405,7 +1495,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "374708fff7719dd5979ec875d56cd228"
             }
           }
         }
@@ -1431,7 +1521,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "374708fff7719dd5979ec875d56cd228"
             }
           }
         }
@@ -1476,7 +1566,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "0-0"
+                    "string": "374708fff7719dd5979ec875d56cd228"
                   }
                 },
                 {
@@ -1513,7 +1603,7 @@
                   "val": {
                     "vec": [
                       {
-                        "string": "0-0"
+                        "string": "374708fff7719dd5979ec875d56cd228"
                       }
                     ]
                   }
