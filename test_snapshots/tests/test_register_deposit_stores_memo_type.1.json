@@ -80,7 +80,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "mt-stored"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -95,31 +95,8 @@
                   "string": "USD"
                 },
                 "void",
-                "void"
-              ]
-            }
-          },
-          "sub_invocations": []
-        }
-      ]
-    ],
-    [
-      [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
-        {
-          "function": {
-            "contract_fn": {
-              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-              "function_name": "mark_failed",
-              "args": [
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                },
-                {
-                  "string": "374708fff7719dd5979ec875d56cd228"
-                },
-                {
-                  "string": "boom"
+                  "string": "text"
                 }
               ]
             }
@@ -150,7 +127,7 @@
                   "symbol": "AnchorIdx"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "mt-stored"
                 }
               ]
             },
@@ -170,105 +147,19 @@
                       "symbol": "AnchorIdx"
                     },
                     {
-                      "string": "mf-pending"
+                      "string": "mt-stored"
                     }
                   ]
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "374708fff7719dd5979ec875d56cd228"
+                  "string": "0"
                 }
               }
             },
             "ext": "v0"
           },
-          4095
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-            "key": {
-              "vec": [
-                {
-                  "symbol": "Dlq"
-                },
-                {
-                  "string": "374708fff7719dd5979ec875d56cd228"
-                }
-              ]
-            },
-            "durability": "persistent"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-                "key": {
-                  "vec": [
-                    {
-                      "symbol": "Dlq"
-                    },
-                    {
-                      "string": "374708fff7719dd5979ec875d56cd228"
-                    }
-                  ]
-                },
-                "durability": "persistent",
-                "val": {
-                  "map": [
-                    {
-                      "key": {
-                        "symbol": "error_reason"
-                      },
-                      "val": {
-                        "string": "boom"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "last_retry_ledger"
-                      },
-                      "val": {
-                        "u32": 0
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "moved_at_ledger"
-                      },
-                      "val": {
-                        "u32": 0
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "retry_count"
-                      },
-                      "val": {
-                        "u32": 0
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "tx_id"
-                      },
-                      "val": {
-                        "string": "374708fff7719dd5979ec875d56cd228"
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            "ext": "v0"
-          },
-          4095
+          172800
         ]
       ],
       [
@@ -281,7 +172,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "374708fff7719dd5979ec875d56cd228"
+                  "string": "0"
                 }
               ]
             },
@@ -301,7 +192,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "374708fff7719dd5979ec875d56cd228"
+                      "string": "0"
                     }
                   ]
                 },
@@ -324,7 +215,7 @@
                         "symbol": "anchor_transaction_id"
                       },
                       "val": {
-                        "string": "mf-pending"
+                        "string": "mt-stored"
                       }
                     },
                     {
@@ -334,12 +225,6 @@
                       "val": {
                         "string": "USD"
                       }
-                    },
-                    {
-                      "key": {
-                        "symbol": "callback_type"
-                      },
-                      "val": "void"
                     },
                     {
                       "key": {
@@ -354,7 +239,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "374708fff7719dd5979ec875d56cd228"
+                        "string": "0"
                       }
                     },
                     {
@@ -367,7 +252,9 @@
                       "key": {
                         "symbol": "memo_type"
                       },
-                      "val": "void"
+                      "val": {
+                        "string": "text"
+                      }
                     },
                     {
                       "key": {
@@ -392,7 +279,7 @@
                       "val": {
                         "vec": [
                           {
-                            "symbol": "Failed"
+                            "symbol": "Pending"
                           }
                         ]
                       }
@@ -447,14 +334,6 @@
                     "storage": [
                       {
                         "key": {
-                          "symbol": "txnonce"
-                        },
-                        "val": {
-                          "u32": 1
-                        }
-                      },
-                      {
-                        "key": {
                           "vec": [
                             {
                               "symbol": "Admin"
@@ -478,6 +357,18 @@
                         },
                         "val": {
                           "bool": true
+                        }
+                      },
+                      {
+                        "key": {
+                          "vec": [
+                            {
+                              "symbol": "AssetCount"
+                            }
+                          ]
+                        },
+                        "val": {
+                          "u32": 1
                         }
                       },
                       {
@@ -593,39 +484,6 @@
                 "key": {
                   "ledger_key_nonce": {
                     "nonce": 5541220902715666415
-                  }
-                },
-                "durability": "temporary",
-                "val": "void"
-              }
-            },
-            "ext": "v0"
-          },
-          6311999
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
-            "key": {
-              "ledger_key_nonce": {
-                "nonce": 2032731177588607455
-              }
-            },
-            "durability": "temporary"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
-                "key": {
-                  "ledger_key_nonce": {
-                    "nonce": 2032731177588607455
                   }
                 },
                 "durability": "temporary",
@@ -805,33 +663,6 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "synapse"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "symbol": "RelayerGranted"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -954,7 +785,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "mt-stored"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -969,7 +800,9 @@
                   "string": "USD"
                 },
                 "void",
-                "void"
+                {
+                  "string": "text"
+                }
               ]
             }
           }
@@ -995,10 +828,10 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "374708fff7719dd5979ec875d56cd228"
+                  "string": "0"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "mt-stored"
                 }
               ]
             }
@@ -1023,95 +856,8 @@
               }
             ],
             "data": {
-              "string": "374708fff7719dd5979ec875d56cd228"
+              "string": "0"
             }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": null,
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_call"
-              },
-              {
-                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
-              },
-              {
-                "symbol": "mark_failed"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                },
-                {
-                  "string": "374708fff7719dd5979ec875d56cd228"
-                },
-                {
-                  "string": "boom"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "synapse"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "symbol": "MovedToDlq"
-                },
-                {
-                  "string": "374708fff7719dd5979ec875d56cd228"
-                },
-                {
-                  "string": "boom"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_return"
-              },
-              {
-                "symbol": "mark_failed"
-              }
-            ],
-            "data": "void"
           }
         }
       },
@@ -1136,7 +882,7 @@
               }
             ],
             "data": {
-              "string": "374708fff7719dd5979ec875d56cd228"
+              "string": "0"
             }
           }
         }
@@ -1176,7 +922,7 @@
                     "symbol": "anchor_transaction_id"
                   },
                   "val": {
-                    "string": "mf-pending"
+                    "string": "mt-stored"
                   }
                 },
                 {
@@ -1186,12 +932,6 @@
                   "val": {
                     "string": "USD"
                   }
-                },
-                {
-                  "key": {
-                    "symbol": "callback_type"
-                  },
-                  "val": "void"
                 },
                 {
                   "key": {
@@ -1206,7 +946,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "374708fff7719dd5979ec875d56cd228"
+                    "string": "0"
                   }
                 },
                 {
@@ -1219,7 +959,9 @@
                   "key": {
                     "symbol": "memo_type"
                   },
-                  "val": "void"
+                  "val": {
+                    "string": "text"
+                  }
                 },
                 {
                   "key": {
@@ -1244,7 +986,7 @@
                   "val": {
                     "vec": [
                       {
-                        "symbol": "Failed"
+                        "symbol": "Pending"
                       }
                     ]
                   }

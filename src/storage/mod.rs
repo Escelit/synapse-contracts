@@ -8,12 +8,16 @@ use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 const TX_TTL_THRESHOLD: u32 = 17_280;
 const TX_TTL_EXTEND_TO: u32 = 172_800;
 
+pub const MAX_ASSETS: u32 = 20;
+
 #[contracttype]
 pub enum StorageKey {
     Admin,
+    PendingAdmin,
     Paused,
     MinDeposit,
     MaxDeposit,
+    AssetCount,
     Relayer(Address),
     Asset(SorobanString),
     Tx(SorobanString),
@@ -32,6 +36,19 @@ pub mod admin {
             .instance()
             .get(&StorageKey::Admin)
             .expect("not initialised")
+    }
+}
+
+pub mod pending_admin {
+    use super::*;
+    pub fn set(env: &Env, pending_admin: &Address) {
+        env.storage().instance().set(&StorageKey::PendingAdmin, pending_admin);
+    }
+    pub fn get(env: &Env) -> Option<Address> {
+        env.storage().instance().get(&StorageKey::PendingAdmin)
+    }
+    pub fn clear(env: &Env) {
+        env.storage().instance().remove(&StorageKey::PendingAdmin);
     }
 }
 
@@ -70,6 +87,19 @@ pub mod relayers {
 
 pub mod assets {
     use super::*;
+    use crate::storage::MAX_ASSETS;
+
+    fn count(env: &Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&StorageKey::AssetCount)
+            .unwrap_or(0u32)
+    }
+
+    fn set_count(env: &Env, n: u32) {
+        env.storage().instance().set(&StorageKey::AssetCount, &n);
+    }
+
     pub fn add(env: &Env, code: &SorobanString) {
         if is_allowed(env, code) {
             return;
@@ -78,26 +108,19 @@ pub mod assets {
             .instance()
             .set(&StorageKey::Asset(code.clone()), &true);
     }
-    pub fn remove(env: &Env, code: &SorobanString) {
-        if !is_allowed(env, code) {
-            return;
-        }
-        env.storage()
-            .instance()
-            .remove(&StorageKey::Asset(code.clone()));
-        set_count(env, count(env).saturating_sub(1));
-        env.storage().instance().set(&StorageKey::Asset(code.clone()), &true);
-    }
+
     pub fn remove(env: &Env, code: &SorobanString) {
         env.storage()
             .instance()
             .remove(&StorageKey::Asset(code.clone()));
     }
+
     pub fn is_allowed(env: &Env, code: &SorobanString) -> bool {
         env.storage()
             .instance()
             .has(&StorageKey::Asset(code.clone()))
     }
+
     pub fn require_allowed(env: &Env, code: &SorobanString) {
         if !is_allowed(env, code) {
             panic!("asset not allowed")
@@ -109,11 +132,13 @@ pub mod max_deposit {
     use super::*;
 
     pub fn set(env: &Env, amount: &i128) {
-        env.storage().instance().set(&StorageKey::MaxDeposit, amount);
+        env.storage()
+            .instance()
+            .set(&StorageKey::MaxDeposit, amount);
     }
 
-    pub fn get(env: &Env) -> i128 {
-        env.storage().instance().get(&StorageKey::MaxDeposit).unwrap_or(0i128)
+    pub fn get(env: &Env) -> Option<i128> {
+        env.storage().instance().get(&StorageKey::MaxDeposit)
     }
 }
 
@@ -158,14 +183,18 @@ pub mod settlements {
             .expect("settlement not found")
     }
     pub fn extend_ttl(env: &Env, id: &SorobanString) {
-        env.storage().persistent().extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
+        env.storage()
+            .persistent()
+            .extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
     }
 }
 
 pub mod max_deposit {
     use super::*;
-    pub fn set(env: &Env, amount: i128) {
-        env.storage().instance().set(&StorageKey::MaxDeposit, &amount);
+    pub fn set(env: &Env, amount: &i128) {
+        env.storage()
+            .instance()
+            .set(&StorageKey::MaxDeposit, amount);
     }
     pub fn get(env: &Env) -> Option<i128> {
         env.storage().instance().get(&StorageKey::MaxDeposit)
@@ -189,5 +218,15 @@ pub mod dlq {
         env.storage()
             .persistent()
             .remove(&StorageKey::Dlq(tx_id.clone()));
+    }
+}
+
+pub mod limits {
+    use super::*;
+    pub fn set_min(env: &Env, amount: i128) {
+        env.storage().instance().set(&StorageKey::MinDeposit, &amount);
+    }
+    pub fn get_min(env: &Env) -> i128 {
+        env.storage().instance().get(&StorageKey::MinDeposit).unwrap_or(0)
     }
 }
