@@ -80,7 +80,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-tx-ttl-1"
+                  "string": "ttl-test"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -94,6 +94,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -101,12 +102,11 @@
           "sub_invocations": []
         }
       ]
-    ],
-    []
+    ]
   ],
   "ledger": {
     "protocol_version": 21,
-    "sequence_number": 0,
+    "sequence_number": 20000,
     "timestamp": 0,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
@@ -124,7 +124,7 @@
                   "symbol": "AnchorIdx"
                 },
                 {
-                  "string": "anchor-tx-ttl-1"
+                  "string": "ttl-test"
                 }
               ]
             },
@@ -144,13 +144,13 @@
                       "symbol": "AnchorIdx"
                     },
                     {
-                      "string": "anchor-tx-ttl-1"
+                      "string": "ttl-test"
                     }
                   ]
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               }
             },
@@ -169,7 +169,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -189,7 +189,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -212,7 +212,7 @@
                         "symbol": "anchor_transaction_id"
                       },
                       "val": {
-                        "string": "anchor-tx-ttl-1"
+                        "string": "ttl-test"
                       }
                     },
                     {
@@ -222,6 +222,12 @@
                       "val": {
                         "string": "USD"
                       }
+                    },
+                    {
+                      "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
                     },
                     {
                       "key": {
@@ -236,12 +242,18 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     },
                     {
                       "key": {
                         "symbol": "memo"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo_type"
                       },
                       "val": "void"
                     },
@@ -346,18 +358,6 @@
                         },
                         "val": {
                           "bool": true
-                        }
-                      },
-                      {
-                        "key": {
-                          "vec": [
-                            {
-                              "symbol": "AssetCount"
-                            }
-                          ]
-                        },
-                        "val": {
-                          "u32": 1
                         }
                       },
                       {
@@ -652,6 +652,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -774,7 +801,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-tx-ttl-1"
+                  "string": "ttl-test"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -788,6 +815,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -814,10 +842,10 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
-                  "string": "anchor-tx-ttl-1"
+                  "string": "ttl-test"
                 }
               ]
             }
@@ -842,7 +870,167 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "fn_call"
+              },
+              {
+                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              {
+                "symbol": "register_deposit"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                },
+                {
+                  "string": "ttl-test"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                },
+                {
+                  "i128": {
+                    "hi": 0,
+                    "lo": 100
+                  }
+                },
+                {
+                  "string": "USD"
+                },
+                "void",
+                "void"
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "storage": "internal_error"
+                }
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "string": "[testing-only] Accessed contract instance key that has been archived. Important: this error may only appear in tests; in the real network contracts aren't called at all if any archived entry is accessed."
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "storage": "internal_error"
+                }
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "string": "contract call failed"
+                },
+                {
+                  "symbol": "register_deposit"
+                },
+                {
+                  "vec": [
+                    {
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                    },
+                    {
+                      "string": "ttl-test"
+                    },
+                    {
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                    },
+                    {
+                      "i128": {
+                        "hi": 0,
+                        "lo": 100
+                      }
+                    },
+                    {
+                      "string": "USD"
+                    },
+                    "void",
+                    "void"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "storage": "internal_error"
+                }
+              }
+            ],
+            "data": {
+              "string": "escalating error to panic"
             }
           }
         }
