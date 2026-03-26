@@ -16,6 +16,26 @@ use types::{DlqEntry, Event, Settlement, Transaction, TransactionStatus};
 #[contract]
 pub struct SynapseContract;
 
+fn validate_asset_code(asset_code: &SorobanString) {
+    if asset_code.is_empty() {
+        panic!("invalid asset code");
+    }
+
+    let mut bytes = alloc::vec![0u8; asset_code.len() as usize];
+    asset_code.copy_into_slice(bytes.as_mut_slice());
+
+    let mut i: usize = 0;
+    while i < bytes.len() {
+        let byte = bytes[i];
+        let is_uppercase_letter = byte >= b'A' && byte <= b'Z';
+        let is_digit = byte >= b'0' && byte <= b'9';
+        if !is_uppercase_letter && !is_digit {
+            panic!("invalid asset code");
+        }
+        i += 1;
+    }
+}
+
 #[contractimpl]
 impl SynapseContract {
     // TODO(#2): emit `Initialized` event on first call
@@ -82,6 +102,7 @@ impl SynapseContract {
     pub fn add_asset(env: Env, caller: Address, asset_code: SorobanString) {
         require_not_paused(&env);
         require_admin(&env, &caller);
+        validate_asset_code(&asset_code);
         assets::add(&env, &asset_code);
         emit(&env, Event::AssetAdded(asset_code));
     }
@@ -365,6 +386,36 @@ mod tests {
 
         let tx = client.get_transaction(&tx_id);
         assert_eq!(tx.memo, Some(memo));
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid asset code")]
+    fn test_add_asset_panics_when_asset_code_is_empty() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+
+        client.add_asset(&admin, &SorobanString::from_str(&env, ""));
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid asset code")]
+    fn test_add_asset_panics_when_asset_code_contains_lowercase() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+
+        client.add_asset(&admin, &SorobanString::from_str(&env, "Usd"));
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid asset code")]
+    fn test_add_asset_panics_when_asset_code_contains_special_characters() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+
+        client.add_asset(&admin, &SorobanString::from_str(&env, "US$"));
     }
 
     fn setup_relayer_deposit<'a>(
