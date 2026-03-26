@@ -172,6 +172,9 @@ impl SynapseContract {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        if tx.status != TransactionStatus::Processing {
+            panic!("transaction must be Processing");
+        }
         tx.status = TransactionStatus::Completed;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
@@ -180,7 +183,6 @@ impl SynapseContract {
             Event::StatusUpdated(tx_id, TransactionStatus::Completed),
         );
     }
-
     // TODO(#26): enforce transition guard — must be Pending or Processing
     // TODO(#27): cap max retry_count; emit `MaxRetriesExceeded` when hit
     // TODO(#28): validate error_reason is non-empty
@@ -452,6 +454,25 @@ mod tests {
     }
 
     #[test]
+
+    #[test]
+    #[should_panic(expected = "transaction must be Processing")]
+    fn test_mark_completed_panics_when_not_processing() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mc-not-processing");
+        client.mark_completed(&relayer, &tx_id);
+    }
+
+    #[test]
+    fn test_mark_completed_succeeds_when_processing() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mc-processing");
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
+        let tx = client.get_transaction(&tx_id);
+        assert!(matches!(tx.status, TransactionStatus::Completed));
+    }
+
     fn test_mark_failed_panics_when_already_failed() {
         let env = Env::default();
         let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mf-twice");
