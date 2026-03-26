@@ -1,8 +1,6 @@
 use alloc::format;
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
 extern crate alloc;
-use alloc::format;
-
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
 
 pub const MAX_RETRIES: u32 = 5;
@@ -51,7 +49,7 @@ impl Transaction {
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
-            id: generate_id(env, &anchor_transaction_id),
+            id: generate_id(env),
             anchor_transaction_id,
             stellar_account,
             relayer,
@@ -90,7 +88,7 @@ impl Settlement {
         period_end: u64,
     ) -> Self {
         Self {
-            id: generate_settlement_id(env),
+            id: generate_id(env),
             asset_code,
             tx_ids,
             total_amount,
@@ -141,14 +139,25 @@ pub enum Event {
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
     RelayerRevoked(Address),
+    RelayerGranted(Address),
+    Settled(SorobanString, SorobanString),
+}
+
+fn next_nonce(env: &Env) -> u64 {
+    let key = soroban_sdk::Symbol::new(env, "idnonce");
+    let nonce: u64 = env.storage().instance().get(&key).unwrap_or(0u64);
+    env.storage().instance().set(&key, &(nonce + 1));
+    nonce
 }
 
 fn generate_id(env: &Env) -> SorobanString {
     let ts = env.ledger().timestamp();
     let seq = env.ledger().sequence();
-    let mut data = [0u8; 12];
+    let nonce = next_nonce(env);
+    let mut data = [0u8; 20];
     data[..8].copy_from_slice(&ts.to_be_bytes());
     data[8..12].copy_from_slice(&seq.to_be_bytes());
+    data[12..20].copy_from_slice(&nonce.to_be_bytes());
     let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &data));
     let bytes = hash.to_array();
     // encode first 16 bytes as 32-char hex
