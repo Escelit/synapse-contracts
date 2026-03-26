@@ -100,8 +100,8 @@ impl SynapseContract {
         max_deposit::set(&env, &amount);
     }
 
-    pub fn get_max_deposit(env: Env) -> Option<i128> {
-        max_deposit::get(&env)
+    pub fn get_max_deposit(env: Env) -> i128 {
+        max_deposit::get(&env).unwrap_or(0)
     }
 
     // TODO(#15): enforce minimum deposit amount (configurable by admin)
@@ -518,11 +518,11 @@ mod tests {
         let client = SynapseContractClient::new(&env, &contract_id);
 
         // Default should be 0
-        assert_eq!(client.get_max_deposit(), None);
+        assert_eq!(client.get_max_deposit(), 0);
 
         // Set to 1000
         client.set_max_deposit(&admin, &1000i128);
-        assert_eq!(client.get_max_deposit(), Some(1000i128));
+        assert_eq!(client.get_max_deposit(), 1000i128);
 
         for code in TEST_ASSET_CODES {
             client.add_asset(&admin, &SorobanString::from_str(&env, code));
@@ -530,7 +530,7 @@ mod tests {
         client.add_asset(&admin, &SorobanString::from_str(&env, "OVERFLOW"));
         // Set to 5000
         client.set_max_deposit(&admin, &5000i128);
-        assert_eq!(client.get_max_deposit(), Some(5000i128));
+        assert_eq!(client.get_max_deposit(), 5000i128);
     }
 
     #[test]

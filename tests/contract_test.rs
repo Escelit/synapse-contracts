@@ -207,10 +207,10 @@ fn register_deposit_rejects_non_relayer() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn get_max_deposit_returns_none_before_set() {
+fn get_max_deposit_returns_zero_before_set() {
     let env = Env::default();
     let (_, _, client) = setup(&env);
-    assert!(client.get_max_deposit().is_none());
+    assert_eq!(client.get_max_deposit(), 0);
 }
 
 #[test]
@@ -218,7 +218,7 @@ fn set_and_get_max_deposit() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     client.set_max_deposit(&admin, &500_000_000);
-    assert_eq!(client.get_max_deposit(), Some(500_000_000));
+    assert_eq!(client.get_max_deposit(), 500_000_000);
 }
 
 #[test]
