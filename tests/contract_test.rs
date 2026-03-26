@@ -548,22 +548,39 @@ fn mark_processing_on_non_pending_tx_panics() {
 }
 
 // ---------------------------------------------------------------------------
-// DLQ retry — TODO(#29)–(#32)
+// DLQ retry — TODO(#31)–(#32); #29 status regression — issue #78
 // ---------------------------------------------------------------------------
 
 #[test]
-fn admin_can_retry_dlq() {
+fn retry_dlq_resets_transaction_status_to_pending() {
+    // Regression for #29 (issue #78): DLQ retry must restore the tx to Pending.
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
-    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a1"),
-        &Address::generate(&env), &50_000_000, &usd(&env), &None);
-    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "timeout"));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-78-retry-status"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    client.mark_failed(
+        &relayer,
+        &tx_id,
+        &SorobanString::from_str(&env, "simulated failure"),
+    );
+    assert_eq!(
+        client.get_transaction(&tx_id).status,
+        synapse_contract::types::TransactionStatus::Failed
+    );
     client.retry_dlq(&admin, &tx_id);
-    let tx = client.get_transaction(&tx_id);
-    assert_eq!(tx.status, synapse_contract::types::TransactionStatus::Pending);
+    assert_eq!(
+        client.get_transaction(&tx_id).status,
+        synapse_contract::types::TransactionStatus::Pending
+    );
 }
 
 #[test]
