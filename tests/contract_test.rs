@@ -211,8 +211,109 @@ fn register_deposit_rejects_non_relayer() {
     );
 }
 
-// TODO(#15): test minimum amount enforcement once implemented
 // TODO(#17): test empty anchor_transaction_id rejection once implemented
+
+// ---------------------------------------------------------------------------
+// Min deposit — issue #15
+// ---------------------------------------------------------------------------
+
+#[test]
+fn get_min_deposit_returns_none_before_set() {
+    let env = Env::default();
+    let (_, _, client) = setup(&env);
+    assert!(client.get_min_deposit().is_none());
+}
+
+#[test]
+fn set_and_get_min_deposit() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.set_min_deposit(&admin, &100_000_000);
+    assert_eq!(client.get_min_deposit(), Some(100_000_000));
+}
+
+#[test]
+#[should_panic]
+fn non_admin_cannot_set_min_deposit() {
+    let env = Env::default();
+    let (_, _, client) = setup(&env);
+    let rando = Address::generate(&env);
+    client.set_min_deposit(&rando, &100_000_000);
+}
+
+#[test]
+#[should_panic]
+fn set_min_deposit_rejects_zero() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.set_min_deposit(&admin, &0);
+}
+
+#[test]
+#[should_panic]
+fn set_min_deposit_rejects_negative() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.set_min_deposit(&admin, &-1);
+}
+
+#[test]
+fn deposit_succeeds_when_no_min_set() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "a-min-0"),
+        &Address::generate(&env),
+        &1,
+        &usd(&env),
+        &None,
+    );
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(tx.amount, 1);
+}
+
+#[test]
+fn deposit_at_min_succeeds() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.set_min_deposit(&admin, &100_000_000);
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "a-min-at"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+    );
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(tx.amount, 100_000_000);
+}
+
+#[test]
+#[should_panic(expected = "amount below min deposit")]
+fn deposit_below_min_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.set_min_deposit(&admin, &100_000_000);
+    client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "a-min-below"),
+        &Address::generate(&env),
+        &99_999_999,
+        &usd(&env),
+        &None,
+    );
+}
 
 // ---------------------------------------------------------------------------
 // Max deposit — issue #16
