@@ -47,6 +47,7 @@ impl Transaction {
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
+        memo_type: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
@@ -61,7 +62,7 @@ impl Transaction {
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
             memo,
-            memo_type: None,
+            memo_type,
             callback_type: None,
         }
     }

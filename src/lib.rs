@@ -108,7 +108,7 @@ impl SynapseContract {
     // TODO(#16): enforce maximum deposit amount (configurable by admin) — DONE
     // TODO(#17): validate anchor_transaction_id is non-empty
     // TODO(#18): add `memo` field support (mirrors synapse-core CallbackPayload)
-    // TODO(#19): add `memo_type` field support (text | hash | id)
+    // TODO(#19): add `memo_type` field support (text | hash | id) — DONE
     // TODO(#20): add `callback_type` field (deposit | withdrawal)
     // TODO(#21): bump persistent TTL on AnchorIdx entry after save
     pub fn register_deposit(
@@ -119,6 +119,7 @@ impl SynapseContract {
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
+        memo_type: Option<SorobanString>,
     ) -> SorobanString {
         require_not_paused(&env);
         require_relayer(&env, &caller);
@@ -126,6 +127,14 @@ impl SynapseContract {
 
         if let Some(max) = max_deposit::get(&env) {
             if amount > max { panic!("amount exceeds max deposit") }
+        }
+
+        // Validate memo_type if present
+        if let Some(ref mt) = memo_type {
+            let mt_str = mt.clone();
+            if mt_str != "text" && mt_str != "hash" && mt_str != "id" {
+                panic!("invalid memo_type: must be 'text', 'hash', or 'id'")
+            }
         }
 
         if let Some(existing) = deposits::find_by_anchor_id(&env, &anchor_transaction_id) {
@@ -140,6 +149,7 @@ impl SynapseContract {
             amount,
             asset_code,
             memo,
+            memo_type,
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
