@@ -105,7 +105,6 @@ impl SynapseContract {
     }
 
     // TODO(#15): enforce minimum deposit amount (configurable by admin)
-    // TODO(#16): enforce maximum deposit amount (configurable by admin) — DONE
     // TODO(#17): validate anchor_transaction_id is non-empty
     // TODO(#18): add `memo` field support (mirrors synapse-core CallbackPayload)
     // TODO(#19): add `memo_type` field support (text | hash | id)
@@ -173,6 +172,9 @@ impl SynapseContract {
         tx.status = TransactionStatus::Completed;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
+        if dlq::get(&env, &tx_id).is_some() {
+            dlq::remove(&env, &tx_id);
+        }
         emit(
             &env,
             Event::StatusUpdated(tx_id, TransactionStatus::Completed),
@@ -253,6 +255,7 @@ impl SynapseContract {
         );
         let id = s.id.clone();
         settlements::save(&env, &s);
+        settlements::extend_ttl(&env, &id);
         let mut i: u32 = 0;
         while i < n {
             let tx_id = tx_ids.get(i).unwrap();
@@ -270,9 +273,8 @@ impl SynapseContract {
     }
 
     // TODO(#40): add `get_dlq_entry(tx_id)` query
-    // TODO(#41): add `get_admin()` query
+    // TODO(#41): add `get_admin()` query — DONE
     // TODO(#43): add `get_min_deposit()` query
-    // TODO(#44): add `get_max_deposit()` query — DONE
 
     pub fn get_admin(env: Env) -> Address {
         storage::admin::get(&env)
@@ -310,11 +312,6 @@ mod tests {
         testutils::{Address as _, Events as _, Ledger as _},
         vec, Env, IntoVal, String as SorobanString,
     };
-
-    const TEST_ASSET_CODES: [&str; 20] = [
-        "A00", "A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12",
-        "A13", "A14", "A15", "A16", "A17", "A18", "A19",
-    ];
 
     fn setup(env: &Env) -> (Address, Address) {
         env.mock_all_auths();
@@ -503,20 +500,70 @@ mod tests {
         let (admin, contract_id) = setup(&env);
         let client = SynapseContractClient::new(&env, &contract_id);
 
-        // Default should be 0
         assert_eq!(client.get_max_deposit(), None);
 
-        // Set to 1000
         client.set_max_deposit(&admin, &1000i128);
         assert_eq!(client.get_max_deposit(), Some(1000i128));
 
-        for code in TEST_ASSET_CODES {
-            client.add_asset(&admin, &SorobanString::from_str(&env, code));
-        }
-        client.add_asset(&admin, &SorobanString::from_str(&env, "OVERFLOW"));
-        // Set to 5000
         client.set_max_deposit(&admin, &5000i128);
         assert_eq!(client.get_max_deposit(), Some(5000i128));
+    }
+
+    #[test]
+    #[should_panic(expected = "amount exceeds max deposit")]
+    fn test_register_deposit_panics_when_amount_exceeds_max() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &asset);
+        client.set_max_deposit(&admin, &500i128);
+
+        client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "over-max-anchor"),
+            &stellar,
+            &501i128,
+            &asset,
+            &None,
+        );
+    }
+
+    #[test]
+    fn test_register_deposit_succeeds_at_exact_max() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &asset);
+        client.set_max_deposit(&admin, &500i128);
+
+        let tx_id = client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "exact-max-anchor"),
+            &stellar,
+            &500i128,
+            &asset,
+            &None,
+        );
+        assert!(tx_id.len() > 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "max deposit must be positive")]
+    fn test_set_max_deposit_panics_on_zero() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        client.set_max_deposit(&admin, &0i128);
     }
 
     #[test]

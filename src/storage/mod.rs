@@ -168,7 +168,6 @@ pub mod dlq {
             .get(&StorageKey::Dlq(tx_id.clone()))
     }
     pub fn remove(env: &Env, tx_id: &SorobanString) {
-        // TODO(#62): call this after a successful retry
         env.storage()
             .persistent()
             .remove(&StorageKey::Dlq(tx_id.clone()));
