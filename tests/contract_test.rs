@@ -344,7 +344,50 @@ fn mark_failed_creates_dlq_entry() {
     // TODO(#40): assert client.get_dlq_entry(&tx_id).error_reason == "horizon timeout"
 }
 
-// TODO(#23): test Pending→Processing guard (skip to Processing from Completed should panic)
+// issue #23: Pending→Processing guard
+#[test]
+#[should_panic(expected = "transaction must be Pending")]
+fn mark_processing_panics_when_already_processing() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-proc"),
+        &Address::generate(&env), &100i128, &usd(&env), &None);
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_processing(&relayer, &tx_id);
+}
+
+#[test]
+#[should_panic(expected = "transaction must be Pending")]
+fn mark_processing_panics_when_completed() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-comp"),
+        &Address::generate(&env), &100i128, &usd(&env), &None);
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+    client.mark_processing(&relayer, &tx_id);
+}
+
+#[test]
+#[should_panic(expected = "transaction must be Pending")]
+fn mark_processing_panics_when_failed() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-fail"),
+        &Address::generate(&env), &100i128, &usd(&env), &None);
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+    client.mark_processing(&relayer, &tx_id);
+}
+
 // TODO(#25): test Processing→Completed guard
 // TODO(#26): test Failed transition guard
 

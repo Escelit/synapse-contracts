@@ -151,11 +151,13 @@ impl SynapseContract {
         id
     }
 
-    // TODO(#23): enforce transition guard — must be Pending
     pub fn mark_processing(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        if tx.status != TransactionStatus::Pending {
+            panic!("transaction must be Pending");
+        }
         tx.status = TransactionStatus::Processing;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
