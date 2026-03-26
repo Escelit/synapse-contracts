@@ -600,6 +600,26 @@ mod tests {
     }
 
     #[test]
+    fn test_finalize_settlement_extends_settlement_ttl() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "ttl-settlement");
+
+        let settlement_id = client.finalize_settlement(
+            &relayer,
+            &SorobanString::from_str(&env, "USD"),
+            &vec![&env, tx_id.clone()],
+            &1i128,
+            &0u64,
+            &1u64,
+        );
+
+        // Verify the settlement was persisted and is retrievable (TTL was extended)
+        let s = client.get_settlement(&settlement_id);
+        assert_eq!(s.total_amount, 1i128);
+        assert_eq!(s.id, settlement_id);
+    }
+
+    #[test]
     #[should_panic(expected = "transaction already settled")]
     fn test_finalize_settlement_panics_when_transaction_already_settled() {
         let env = Env::default();

@@ -138,9 +138,11 @@ pub mod deposits {
 pub mod settlements {
     use super::*;
     pub fn save(env: &Env, s: &Settlement) {
+        let key = StorageKey::Settlement(s.id.clone());
+        env.storage().persistent().set(&key, s);
         env.storage()
             .persistent()
-            .set(&StorageKey::Settlement(s.id.clone()), s);
+            .extend_ttl(&key, 535_679, 535_679);
     }
     pub fn get(env: &Env, id: &SorobanString) -> Settlement {
         env.storage()
