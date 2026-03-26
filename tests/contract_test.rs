@@ -496,7 +496,6 @@ fn finalize_settlement_emits_per_tx_events() {
         event_data(&env, event_data_3),
         (Event::SettlementFinalized(settlement_id, usd(&env), 100_000_000), ledger),
     );
-}
 
 // TODO(#33): test that settling a non-Completed tx panics
 // TODO(#34): test that settling an already-settled tx panics
