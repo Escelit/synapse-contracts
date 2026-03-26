@@ -80,7 +80,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-001"
+                  "string": "a4"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -93,8 +93,7 @@
                 },
                 {
                   "string": "USD"
-                },
-                "void"
+                }
               ]
             }
           },
@@ -109,34 +108,44 @@
           "function": {
             "contract_fn": {
               "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-              "function_name": "register_deposit",
+              "function_name": "mark_processing",
               "args": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-001"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                },
-                {
-                  "i128": {
-                    "hi": 0,
-                    "lo": 100000000
-                  }
-                },
-                {
-                  "string": "USD"
-                },
-                "void"
+                  "string": "a4"
+                }
               ]
             }
           },
           "sub_invocations": []
         }
       ]
-    ]
+    ],
+    [
+      [
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
+        {
+          "function": {
+            "contract_fn": {
+              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+              "function_name": "mark_completed",
+              "args": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                },
+                {
+                  "string": "a4"
+                }
+              ]
+            }
+          },
+          "sub_invocations": []
+        }
+      ]
+    ],
+    []
   ],
   "ledger": {
     "protocol_version": 21,
@@ -158,7 +167,7 @@
                   "symbol": "AnchorIdx"
                 },
                 {
-                  "string": "anchor-001"
+                  "string": "a4"
                 }
               ]
             },
@@ -178,13 +187,13 @@
                       "symbol": "AnchorIdx"
                     },
                     {
-                      "string": "anchor-001"
+                      "string": "a4"
                     }
                   ]
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                  "string": "a4"
                 }
               }
             },
@@ -203,7 +212,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                  "string": "a4"
                 }
               ]
             },
@@ -223,7 +232,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "15ec7bf0b50732b49f8228e07d243653"
+                      "string": "a4"
                     }
                   ]
                 },
@@ -246,7 +255,7 @@
                         "symbol": "anchor_transaction_id"
                       },
                       "val": {
-                        "string": "anchor-001"
+                        "string": "a4"
                       }
                     },
                     {
@@ -256,12 +265,6 @@
                       "val": {
                         "string": "USD"
                       }
-                    },
-                    {
-                      "key": {
-                        "symbol": "callback_type"
-                      },
-                      "val": "void"
                     },
                     {
                       "key": {
@@ -276,27 +279,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "15ec7bf0b50732b49f8228e07d243653"
-                      }
-                    },
-                    {
-                      "key": {
-                        "symbol": "memo"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "memo_type"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "relayer"
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                        "string": "a4"
                       }
                     },
                     {
@@ -314,7 +297,7 @@
                       "val": {
                         "vec": [
                           {
-                            "symbol": "Pending"
+                            "symbol": "Completed"
                           }
                         ]
                       }
@@ -341,7 +324,7 @@
             },
             "ext": "v0"
           },
-          172800
+          4095
         ]
       ],
       [
@@ -557,6 +540,39 @@
             "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
             "key": {
               "ledger_key_nonce": {
+                "nonce": 4270020994084947596
+              }
+            },
+            "durability": "temporary"
+          }
+        },
+        [
+          {
+            "last_modified_ledger_seq": 0,
+            "data": {
+              "contract_data": {
+                "ext": "v0",
+                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
+                "key": {
+                  "ledger_key_nonce": {
+                    "nonce": 4270020994084947596
+                  }
+                },
+                "durability": "temporary",
+                "val": "void"
+              }
+            },
+            "ext": "v0"
+          },
+          6311999
+        ]
+      ],
+      [
+        {
+          "contract_data": {
+            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
+            "key": {
+              "ledger_key_nonce": {
                 "nonce": 4837995959683129791
               }
             },
@@ -638,33 +654,6 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "synapse"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "symbol": "Initialized"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -704,33 +693,6 @@
               "vec": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "synapse"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "symbol": "RelayerGranted"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -868,7 +830,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-001"
+                  "string": "a4"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -881,8 +843,7 @@
                 },
                 {
                   "string": "USD"
-                },
-                "void"
+                }
               ]
             }
           }
@@ -908,10 +869,10 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                  "string": "a4"
                 },
                 {
-                  "string": "anchor-001"
+                  "string": "a4"
                 }
               ]
             }
@@ -936,7 +897,7 @@
               }
             ],
             "data": {
-              "string": "15ec7bf0b50732b49f8228e07d243653"
+              "string": "a4"
             }
           }
         }
@@ -958,7 +919,7 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
               },
               {
-                "symbol": "register_deposit"
+                "symbol": "mark_processing"
               }
             ],
             "data": {
@@ -967,21 +928,42 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "anchor-001"
+                  "string": "a4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "StatusUpdated"
                 },
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  "string": "a4"
                 },
                 {
-                  "i128": {
-                    "hi": 0,
-                    "lo": 100000000
-                  }
-                },
-                {
-                  "string": "USD"
-                },
-                "void"
+                  "vec": [
+                    {
+                      "symbol": "Processing"
+                    }
+                  ]
+                }
               ]
             }
           }
@@ -1001,11 +983,309 @@
                 "symbol": "fn_return"
               },
               {
-                "symbol": "register_deposit"
+                "symbol": "mark_processing"
+              }
+            ],
+            "data": "void"
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "fn_call"
+              },
+              {
+                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              {
+                "symbol": "mark_completed"
               }
             ],
             "data": {
-              "string": "15ec7bf0b50732b49f8228e07d243653"
+              "vec": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                },
+                {
+                  "string": "a4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "StatusUpdated"
+                },
+                {
+                  "string": "a4"
+                },
+                {
+                  "vec": [
+                    {
+                      "symbol": "Completed"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "fn_return"
+              },
+              {
+                "symbol": "mark_completed"
+              }
+            ],
+            "data": "void"
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "fn_call"
+              },
+              {
+                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              {
+                "symbol": "finalize_settlement"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                },
+                {
+                  "string": "USD"
+                },
+                {
+                  "vec": [
+                    {
+                      "string": "a4"
+                    }
+                  ]
+                },
+                {
+                  "i128": {
+                    "hi": 0,
+                    "lo": 200000000
+                  }
+                },
+                {
+                  "u64": 0
+                },
+                {
+                  "u64": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "log"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "string": "caught panic 'total_amount mismatch' from contract function 'Symbol(obj#291)'"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                },
+                {
+                  "string": "USD"
+                },
+                {
+                  "vec": [
+                    {
+                      "string": "a4"
+                    }
+                  ]
+                },
+                {
+                  "i128": {
+                    "hi": 0,
+                    "lo": 200000000
+                  }
+                },
+                {
+                  "u64": 0
+                },
+                {
+                  "u64": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": true
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "wasm_vm": "invalid_action"
+                }
+              }
+            ],
+            "data": {
+              "string": "caught error from function"
+            }
+          }
+        }
+      },
+      "failed_call": true
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "wasm_vm": "invalid_action"
+                }
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "string": "contract call failed"
+                },
+                {
+                  "symbol": "finalize_settlement"
+                },
+                {
+                  "vec": [
+                    {
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                    },
+                    {
+                      "string": "USD"
+                    },
+                    {
+                      "vec": [
+                        {
+                          "string": "a4"
+                        }
+                      ]
+                    },
+                    {
+                      "i128": {
+                        "hi": 0,
+                        "lo": 200000000
+                      }
+                    },
+                    {
+                      "u64": 0
+                    },
+                    {
+                      "u64": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": null,
+        "type_": "diagnostic",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "error"
+              },
+              {
+                "error": {
+                  "wasm_vm": "invalid_action"
+                }
+              }
+            ],
+            "data": {
+              "string": "escalating error to panic"
             }
           }
         }

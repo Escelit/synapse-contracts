@@ -1,6 +1,6 @@
 {
   "generators": {
-    "address": 2,
+    "address": 3,
     "nonce": 0
   },
   "auth": [
@@ -226,11 +226,18 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
               },
               {
-                "symbol": "initialize"
+                "symbol": "revoke_relayer"
               }
             ],
             "data": {
-              "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+              "vec": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
             }
           }
         }
@@ -252,10 +259,13 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'already initialised' from contract function 'Symbol(obj#27)'"
+                  "string": "caught panic 'address is not a relayer' from contract function 'Symbol(obj#29)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 }
               ]
             }
@@ -312,12 +322,15 @@
                   "string": "contract call failed"
                 },
                 {
-                  "symbol": "initialize"
+                  "symbol": "revoke_relayer"
                 },
                 {
                   "vec": [
                     {
                       "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                    },
+                    {
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                     }
                   ]
                 }

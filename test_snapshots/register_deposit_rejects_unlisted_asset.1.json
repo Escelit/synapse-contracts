@@ -237,6 +237,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "Initialized"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -276,6 +303,33 @@
               "vec": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -345,7 +399,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -368,7 +423,7 @@
             "data": {
               "vec": [
                 {
-                  "string": "caught panic 'asset not allowed' from contract function 'Symbol(obj#41)'"
+                  "string": "caught panic 'asset not allowed' from contract function 'Symbol(obj#65)'"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -387,7 +442,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -464,7 +520,8 @@
                     },
                     {
                       "string": "USD"
-                    }
+                    },
+                    "void"
                   ]
                 }
               ]

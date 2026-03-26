@@ -93,7 +93,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           },
@@ -114,7 +115,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             }
@@ -136,7 +137,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             }
@@ -163,7 +164,7 @@
                 {
                   "vec": [
                     {
-                      "string": "0-0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -234,7 +235,7 @@
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               }
             },
@@ -253,7 +254,7 @@
                   "symbol": "Settlement"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -273,7 +274,7 @@
                       "symbol": "Settlement"
                     },
                     {
-                      "string": "0-0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -301,7 +302,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0-0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     },
                     {
@@ -338,7 +339,7 @@
                       "val": {
                         "vec": [
                           {
-                            "string": "0-0"
+                            "string": "15ec7bf0b50732b49f8228e07d243653"
                           }
                         ]
                       }
@@ -349,7 +350,7 @@
             },
             "ext": "v0"
           },
-          535679
+          4095
         ]
       ],
       [
@@ -362,7 +363,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -382,7 +383,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0-0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -418,6 +419,12 @@
                     },
                     {
                       "key": {
+                        "symbol": "callback_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -429,7 +436,27 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0-0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
+                      }
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "memo_type"
+                      },
+                      "val": "void"
+                    },
+                    {
+                      "key": {
+                        "symbol": "relayer"
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                       }
                     },
                     {
@@ -437,7 +464,7 @@
                         "symbol": "settlement_id"
                       },
                       "val": {
-                        "string": ""
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     },
                     {
@@ -474,7 +501,7 @@
             },
             "ext": "v0"
           },
-          4095
+          172800
         ]
       ],
       [
@@ -837,6 +864,33 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "Initialized"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -876,6 +930,33 @@
               "vec": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -1026,7 +1107,8 @@
                 },
                 {
                   "string": "USD"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -1052,7 +1134,7 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "a3"
@@ -1080,7 +1162,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1111,7 +1193,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             }
@@ -1138,7 +1220,7 @@
                   "symbol": "StatusUpdated"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "vec": [
@@ -1199,7 +1281,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             }
@@ -1226,7 +1308,7 @@
                   "symbol": "StatusUpdated"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "vec": [
@@ -1292,7 +1374,7 @@
                 {
                   "vec": [
                     {
-                      "string": "0-0"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -1330,10 +1412,40 @@
             "data": {
               "vec": [
                 {
+                  "symbol": "Settled"
+                },
+                {
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                },
+                {
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
                   "symbol": "SettlementFinalized"
                 },
                 {
-                  "string": "0-0"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "USD"
@@ -1367,7 +1479,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1393,7 +1505,7 @@
               }
             ],
             "data": {
-              "string": "0-0"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1438,7 +1550,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "0-0"
+                    "string": "15ec7bf0b50732b49f8228e07d243653"
                   }
                 },
                 {
@@ -1475,7 +1587,7 @@
                   "val": {
                     "vec": [
                       {
-                        "string": "0-0"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     ]
                   }
