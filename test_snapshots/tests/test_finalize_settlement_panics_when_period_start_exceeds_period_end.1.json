@@ -168,12 +168,6 @@
                     },
                     {
                       "key": {
-                        "symbol": "memo_type"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
                         "symbol": "relayer"
                       },
                       "val": {

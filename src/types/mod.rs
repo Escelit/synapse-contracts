@@ -25,7 +25,6 @@ pub struct Transaction {
     pub amount: i128,
     pub asset_code: SorobanString,
     pub memo: Option<SorobanString>,
-    pub memo_type: Option<SorobanString>,
     pub status: TransactionStatus,
     pub created_ledger: u32,
     pub updated_ledger: u32,
@@ -43,6 +42,7 @@ impl Transaction {
         relayer: Address,
         amount: i128,
         asset_code: SorobanString,
+        callback_type: Option<SorobanString>,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
     ) -> Self {
@@ -55,11 +55,11 @@ impl Transaction {
             amount,
             asset_code,
             memo,
-            memo_type,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
+            callback_type,
             memo,
             memo_type: None,
             callback_type: None,
@@ -126,14 +126,26 @@ impl DlqEntry {
 // TODO(#51): add `RelayerGranted(Address)` variant
 // TODO(#53): add `Initialized(Address)` variant
 // TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
+// TODO(#55): add `DlqRetried(SorobanString)` variant
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
 // TODO(#57): add `AdminTransferred(Address, Address)` variant
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
+    // Lifecycle
     Initialized(Address),                                    // (admin)
+
+    // Relayer management
+    RelayerGranted(Address),                                 // (relayer)
     DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
     StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
+    SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
+
+    // Pause
+    ContractPaused(Address),                                 // (admin)
+    ContractUnpaused(Address),                               // (admin)
+
+    // DLQ
     MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
     DlqRetried(SorobanString),                               // (tx_id)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
