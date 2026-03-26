@@ -80,7 +80,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "a2"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -88,13 +88,12 @@
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 1
+                    "lo": 50000000
                   }
                 },
                 {
                   "string": "USD"
-                },
-                "void"
+                }
               ]
             }
           },
@@ -115,10 +114,10 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 },
                 {
-                  "string": "boom"
+                  "string": "horizon timeout"
                 }
               ]
             }
@@ -126,8 +125,7 @@
           "sub_invocations": []
         }
       ]
-    ],
-    []
+    ]
   ],
   "ledger": {
     "protocol_version": 21,
@@ -149,7 +147,7 @@
                   "symbol": "AnchorIdx"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "a2"
                 }
               ]
             },
@@ -169,13 +167,13 @@
                       "symbol": "AnchorIdx"
                     },
                     {
-                      "string": "mf-pending"
+                      "string": "a2"
                     }
                   ]
                 },
                 "durability": "persistent",
                 "val": {
-                  "string": "0"
+                  "string": "0-0"
                 }
               }
             },
@@ -194,7 +192,7 @@
                   "symbol": "Dlq"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 }
               ]
             },
@@ -214,7 +212,7 @@
                       "symbol": "Dlq"
                     },
                     {
-                      "string": "0"
+                      "string": "0-0"
                     }
                   ]
                 },
@@ -226,7 +224,7 @@
                         "symbol": "error_reason"
                       },
                       "val": {
-                        "string": "boom"
+                        "string": "horizon timeout"
                       }
                     },
                     {
@@ -258,7 +256,7 @@
                         "symbol": "tx_id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "0-0"
                       }
                     }
                   ]
@@ -280,7 +278,7 @@
                   "symbol": "Tx"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 }
               ]
             },
@@ -300,7 +298,7 @@
                       "symbol": "Tx"
                     },
                     {
-                      "string": "0"
+                      "string": "0-0"
                     }
                   ]
                 },
@@ -314,7 +312,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 1
+                          "lo": 50000000
                         }
                       }
                     },
@@ -323,7 +321,7 @@
                         "symbol": "anchor_transaction_id"
                       },
                       "val": {
-                        "string": "mf-pending"
+                        "string": "a2"
                       }
                     },
                     {
@@ -333,12 +331,6 @@
                       "val": {
                         "string": "USD"
                       }
-                    },
-                    {
-                      "key": {
-                        "symbol": "callback_type"
-                      },
-                      "val": "void"
                     },
                     {
                       "key": {
@@ -353,20 +345,16 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "0"
+                        "string": "0-0"
                       }
                     },
                     {
                       "key": {
-                        "symbol": "memo"
+                        "symbol": "relayer"
                       },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
-                        "symbol": "memo_type"
-                      },
-                      "val": "void"
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                      }
                     },
                     {
                       "key": {
@@ -410,7 +398,7 @@
             },
             "ext": "v0"
           },
-          172800
+          4095
         ]
       ],
       [
@@ -707,33 +695,6 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "synapse"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "symbol": "Initialized"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
         "type_": "diagnostic",
         "body": {
           "v0": {
@@ -773,6 +734,33 @@
               "vec": [
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
+                  "symbol": "RelayerGranted"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
@@ -910,7 +898,7 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "a2"
                 },
                 {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
@@ -918,13 +906,12 @@
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 1
+                    "lo": 50000000
                   }
                 },
                 {
                   "string": "USD"
-                },
-                "void"
+                }
               ]
             }
           }
@@ -950,10 +937,10 @@
                   "symbol": "DepositRegistered"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 },
                 {
-                  "string": "mf-pending"
+                  "string": "a2"
                 }
               ]
             }
@@ -978,7 +965,7 @@
               }
             ],
             "data": {
-              "string": "0"
+              "string": "0-0"
             }
           }
         }
@@ -1009,10 +996,10 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 },
                 {
-                  "string": "boom"
+                  "string": "horizon timeout"
                 }
               ]
             }
@@ -1039,10 +1026,10 @@
                   "symbol": "MovedToDlq"
                 },
                 {
-                  "string": "0"
+                  "string": "0-0"
                 },
                 {
-                  "string": "boom"
+                  "string": "horizon timeout"
                 }
               ]
             }
@@ -1067,153 +1054,6 @@
               }
             ],
             "data": "void"
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": null,
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_call"
-              },
-              {
-                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
-              },
-              {
-                "symbol": "get_transaction"
-              }
-            ],
-            "data": {
-              "string": "0"
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_return"
-              },
-              {
-                "symbol": "get_transaction"
-              }
-            ],
-            "data": {
-              "map": [
-                {
-                  "key": {
-                    "symbol": "amount"
-                  },
-                  "val": {
-                    "i128": {
-                      "hi": 0,
-                      "lo": 1
-                    }
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "anchor_transaction_id"
-                  },
-                  "val": {
-                    "string": "mf-pending"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "asset_code"
-                  },
-                  "val": {
-                    "string": "USD"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "callback_type"
-                  },
-                  "val": "void"
-                },
-                {
-                  "key": {
-                    "symbol": "created_ledger"
-                  },
-                  "val": {
-                    "u32": 0
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "id"
-                  },
-                  "val": {
-                    "string": "0"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "memo"
-                  },
-                  "val": "void"
-                },
-                {
-                  "key": {
-                    "symbol": "memo_type"
-                  },
-                  "val": "void"
-                },
-                {
-                  "key": {
-                    "symbol": "settlement_id"
-                  },
-                  "val": {
-                    "string": ""
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "status"
-                  },
-                  "val": {
-                    "vec": [
-                      {
-                        "symbol": "Failed"
-                      }
-                    ]
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "stellar_account"
-                  },
-                  "val": {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "updated_ledger"
-                  },
-                  "val": {
-                    "u32": 0
-                  }
-                }
-              ]
-            }
           }
         }
       },
