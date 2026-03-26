@@ -7,7 +7,7 @@ mod events;
 mod storage;
 pub mod types;
 
-use access::{require_admin, require_not_paused, require_relayer};
+use access::{require_admin, require_admin_or_original_relayer, require_not_paused, require_relayer};
 use events::emit;
 use soroban_sdk::{contract, contractimpl, Address, Env, String as SorobanString, Vec};
 use storage::{assets, deposits, dlq, max_deposit, relayers, settlements};
@@ -201,10 +201,7 @@ impl SynapseContract {
     pub fn retry_dlq(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
         let mut tx = deposits::get(&env, &tx_id);
-        let admin = storage::admin::get(&env);
-        if caller != admin && caller != tx.relayer {
-            panic!("not admin or original relayer");
-        }
+        require_admin_or_original_relayer(&env, &caller, &tx.relayer.clone());
         let mut entry = dlq::get(&env, &tx_id).expect("dlq entry not found");
 
         tx.status = TransactionStatus::Pending;
