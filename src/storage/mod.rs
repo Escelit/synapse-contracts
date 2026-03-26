@@ -1,7 +1,6 @@
 use crate::types::{DlqEntry, Settlement, Transaction};
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 
-// TODO(#58): bump TTL on every persistent read (extend_ttl) to prevent state expiry
 // TODO(#59): use temporary() storage for in-flight idempotency locks
 // TODO(#60): add DlqCount key to track total DLQ entries without scanning
 
@@ -24,6 +23,7 @@ pub enum StorageKey {
     AnchorIdx(SorobanString),
     Settlement(SorobanString),
     Dlq(SorobanString),
+    DlqCount(i128),
 }
 
 pub mod admin {
@@ -31,12 +31,14 @@ pub mod admin {
     pub fn set(env: &Env, admin: &Address) {
         env.storage().instance().set(&StorageKey::Admin, admin);
     }
-    pub fn get(env: &Env) -> Address {
-        env.storage()
-            .instance()
-            .get(&StorageKey::Admin)
-            .expect("not initialised")
-    }
+pub fn get(env: &Env) -> Address {
+    let admin = env.storage()
+        .instance()
+        .get(&StorageKey::Admin)
+        .expect("not initialised");
+    extend_instance_ttl(env);
+    admin
+}
 }
 
 pub mod pending_admin {
@@ -140,6 +142,8 @@ pub mod max_deposit {
     pub fn get(env: &Env) -> Option<i128> {
         env.storage().instance().get(&StorageKey::MaxDeposit)
     }
+    value
+}
 }
 
 pub mod deposits {
@@ -151,12 +155,15 @@ pub mod deposits {
             .persistent()
             .extend_ttl(&key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
     }
-    pub fn get(env: &Env, id: &SorobanString) -> Transaction {
-        env.storage()
-            .persistent()
-            .get(&StorageKey::Tx(id.clone()))
-            .expect("tx not found")
-    }
+pub fn get(env: &Env, id: &SorobanString) -> Transaction {
+    let tx_key = StorageKey::Tx(id.clone());
+    let tx = env.storage()
+        .persistent()
+        .get(&tx_key)
+        .expect("tx not found");
+    extend_persistent_ttl(env, &tx_key);
+    tx
+}
     pub fn index_anchor_id(env: &Env, anchor_id: &SorobanString, tx_id: &SorobanString) {
         env.storage()
             .persistent()
@@ -201,24 +208,42 @@ pub mod max_deposit {
     }
 }
 
+
+
 pub mod dlq {
     use super::*;
     pub fn push(env: &Env, entry: &DlqEntry) {
+        let mut count: i128 = env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128);
+        count += 1;
+        env.storage().persistent().set(&StorageKey::DlqCount(0i128), &count);
         env.storage()
             .persistent()
             .set(&StorageKey::Dlq(entry.tx_id.clone()), entry);
     }
-    pub fn get(env: &Env, tx_id: &SorobanString) -> Option<DlqEntry> {
-        env.storage()
-            .persistent()
-            .get(&StorageKey::Dlq(tx_id.clone()))
+pub fn get(env: &Env, tx_id: &SorobanString) -> Option<DlqEntry> {
+    let dlq_key = StorageKey::Dlq(tx_id.clone());
+    let value = env.storage()
+        .persistent()
+        .get(&dlq_key);
+    if let Some(_) = value.as_ref() {
+        extend_persistent_ttl(env, &dlq_key);
     }
+    value
+}
     pub fn remove(env: &Env, tx_id: &SorobanString) {
-        // TODO(#62): call this after a successful retry
+        let mut count: i128 = env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128);
+        count = count.saturating_sub(1);
+        env.storage().persistent().set(&StorageKey::DlqCount(0i128), &count);
         env.storage()
             .persistent()
             .remove(&StorageKey::Dlq(tx_id.clone()));
     }
+pub fn get_count(env: &Env) -> i128 {
+    let count_key = StorageKey::DlqCount(0i128);
+    let count = env.storage().persistent().get(&count_key).unwrap_or(0i128);
+    extend_persistent_ttl(env, &count_key);
+    count
+}
 }
 
 pub mod limits {

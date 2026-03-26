@@ -28,6 +28,7 @@ fn usd(env: &Env) -> SorobanString {
 fn initialize_sets_admin() {
     let env = Env::default();
     let (_, _, _client) = setup(&env);
+    // add a file here
     // TODO(#41): assert client.get_admin() == admin once query is added
 }
 
