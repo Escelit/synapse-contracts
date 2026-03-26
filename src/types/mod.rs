@@ -38,6 +38,7 @@ pub struct Transaction {
 impl Transaction {
     pub fn new(
         env: &Env,
+        id: SorobanString,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
         relayer: Address,
@@ -49,7 +50,7 @@ impl Transaction {
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
-            id: generate_id(env, &anchor_transaction_id),
+            id,
             anchor_transaction_id,
             stellar_account,
             relayer,
@@ -83,6 +84,7 @@ pub struct Settlement {
 impl Settlement {
     pub fn new(
         env: &Env,
+        id: SorobanString,
         asset_code: SorobanString,
         tx_ids: Vec<SorobanString>,
         total_amount: i128,
@@ -90,7 +92,7 @@ impl Settlement {
         period_end: u64,
     ) -> Self {
         Self {
-            id: generate_settlement_id(env),
+            id,
             asset_code,
             tx_ids,
             total_amount,
@@ -147,6 +149,7 @@ pub enum Event {
     MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
     DlqRetried(SorobanString),                               // (tx_id)
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
+    Settled(SorobanString, SorobanString),                   // (tx_id, settlement_id)
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
 }

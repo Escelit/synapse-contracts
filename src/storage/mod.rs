@@ -137,8 +137,8 @@ pub mod max_deposit {
             .set(&StorageKey::MaxDeposit, amount);
     }
 
-    pub fn get(env: &Env) -> i128 {
-        env.storage().instance().get(&StorageKey::MaxDeposit).unwrap_or(0i128)
+    pub fn get(env: &Env) -> Option<i128> {
+        env.storage().instance().get(&StorageKey::MaxDeposit)
     }
 }
 
