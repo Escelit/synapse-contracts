@@ -943,6 +943,7 @@ fn finalize_settlement_emits_settlement_finalized_event() {
         (Event::SettlementFinalized(settlement_id, usd(&env), 100_000_000), ledger),
     );
 
+// #33: settlement must reject non-Completed transactions
 #[test]
 #[should_panic(expected = "transaction not completed")]
 fn settle_non_completed_tx_panics() {
