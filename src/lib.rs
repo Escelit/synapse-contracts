@@ -7,12 +7,10 @@ mod events;
 mod storage;
 pub mod types;
 
-use access::{accept_pending_admin, require_admin, require_not_paused, require_relayer, set_pending_admin};
+use access::{require_admin, require_not_paused, require_relayer};
 use events::emit;
-use soroban_sdk::{contract, contractimpl, Address, Env, String as SorobanString, Vec};
-use storage::{assets, deposits, dlq, max_deposit, min_deposit, relayers, settlements};
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, Env, String as SorobanString, Symbol, Vec};
-use storage::{assets, deposits, dlq, max_deposit, relayers, settlements};
+use storage::{assets, deposits, dlq, max_deposit, min_deposit, relayers, settlements};
 use types::{DlqEntry, Event, Settlement, Transaction, TransactionStatus, MAX_RETRIES};
 
 #[contract]
@@ -53,16 +51,11 @@ impl SynapseContract {
         emit(&env, Event::Initialized(admin));
     }
 
-    // TODO(#3): emit `RelayerGranted` event
-pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
+    pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         require_not_paused(&env);
-        let zero_addr = Address::from_string(&SorobanString::from_str(
-            &env,
-            "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
-        ));
-        if relayer == zero_addr { panic!("invalid relayer address") }
         require_admin(&env, &caller);
         relayers::add(&env, &relayer);
+        emit(&env, Event::RelayerGranted(relayer));
     }
 
     pub fn revoke_relayer(env: Env, caller: Address, relayer: Address) {
@@ -70,10 +63,8 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         require_admin(&env, &caller);
         if !relayers::has(&env, &relayer) { panic!("address is not a relayer") }
         relayers::remove(&env, &relayer);
-        emit(&env, Event::RelayerRevoked(relayer));
     }
 
-    // TODO(#8): two-step admin transfer (propose + accept) to prevent lockout
     pub fn transfer_admin(env: Env, caller: Address, new_admin: Address) {
         require_not_paused(&env);
         require_admin(&env, &caller);
@@ -82,46 +73,39 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         emit(&env, Event::AdminTransferred(old_admin, new_admin));
     }
 
-    /// Propose a new admin address for transfer.
-    /// Only the current admin can propose a new admin.
-    /// The proposed admin must accept the transfer to complete it.
     pub fn propose_admin(env: Env, caller: Address, new_admin: Address) {
         require_not_paused(&env);
         require_admin(&env, &caller);
-        pending_admin::set(&env, &new_admin);
-        let current_admin = admin::get(&env);
+        let current_admin = storage::admin::get(&env);
+        storage::pending_admin::set(&env, &new_admin);
         emit(&env, Event::AdminTransferProposed(current_admin, new_admin));
     }
 
-    /// Accept the admin transfer proposal.
-    /// Only the proposed admin can accept the transfer.
-    /// After acceptance, the proposed admin becomes the new admin.
     pub fn accept_admin(env: Env, caller: Address) {
         require_not_paused(&env);
         caller.require_auth();
-        let pending = pending_admin::get(&env).expect("no pending admin transfer");
+        let pending = storage::pending_admin::get(&env).expect("no pending admin");
         if caller != pending {
-            panic!("only proposed admin can accept");
+            panic!("not pending admin")
         }
-        let old_admin = admin::get(&env);
-        admin::set(&env, &pending);
-        pending_admin::clear(&env);
+        let old_admin = storage::admin::get(&env);
+        storage::admin::set(&env, &pending);
+        storage::pending_admin::clear(&env);
         emit(&env, Event::AdminTransferred(old_admin, pending));
     }
 
     pub fn pause(env: Env, caller: Address) {
         require_admin(&env, &caller);
         storage::pause::set(&env, true);
-        emit(&env, types::Event::ContractPaused);
+        emit(&env, Event::ContractPaused(caller));
     }
 
     pub fn unpause(env: Env, caller: Address) {
         require_admin(&env, &caller);
         storage::pause::set(&env, false);
-        emit(&env, Event::ContractUnpaused);
+        emit(&env, Event::ContractUnpaused(caller));
     }
 
-    // TODO(#13): cap the total number of allowed assets to bound instance storage
     pub fn add_asset(env: Env, caller: Address, asset_code: SorobanString) {
         require_not_paused(&env);
         require_admin(&env, &caller);
@@ -157,7 +141,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         require_not_paused(&env);
         require_admin(&env, &caller);
         if amount <= 0 { panic!("min deposit must be positive") }
-        min_deposit::set(&env, &amount);
+        min_deposit::set(&env, amount);
     }
 
     pub fn get_min_deposit(env: Env) -> Option<i128> {
@@ -175,16 +159,12 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
 
     pub fn get_max_deposit(env: Env) -> i128 {
         max_deposit::get(&env).unwrap_or(0)
-
-    pub fn get_max_deposit(env: Env) -> i128 {
-        max_deposit::get(&env)
     }
 
     // TODO(#16): enforce maximum deposit amount (configurable by admin) — DONE
 
     // TODO(#15): enforce minimum deposit amount (configurable by admin)
     // TODO(#17): validate anchor_transaction_id is non-empty
-    // TODO(#18): add `memo` field support (mirrors synapse-core CallbackPayload)
     // TODO(#20): add `callback_type` field (deposit | withdrawal)
     pub fn register_deposit(
         env: Env,
@@ -203,32 +183,25 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
 
         if let Some(min) = min_deposit::get(&env) {
             if amount < min { panic!("amount below min deposit") }
+        }
         if let Some(max) = max_deposit::get(&env) {
-            if amount > max {
-                panic!("amount exceeds max deposit")
-            }
+            if amount > max { panic!("amount exceeds max deposit") }
         }
 
-        if let Some(max) = max_deposit::get(&env) {
-            if amount > max {
-                panic!("amount exceeds max deposit")
-            }
-        }
         if let Some(existing) = deposits::find_by_anchor_id(&env, &anchor_transaction_id) {
-            unlock_temp(&env, &anchor_transaction_id);
             return existing;
         }
 
-        let tx_id = next_id(&env, symbol_short!("txnonce"));
         let tx = Transaction::new(
             &env,
-            tx_id,
             anchor_transaction_id.clone(),
             stellar_account,
+            caller,
             amount,
             asset_code,
             memo,
             memo_type,
+            None, // callback_type
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
@@ -241,37 +214,33 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
-        let old_status = tx.status.clone();
         if tx.status != TransactionStatus::Pending {
             panic!("transaction must be Pending");
         }
-        tx.status = TransactionStatus::Processing;
+        let new_status = TransactionStatus::Processing;
+        tx.status = new_status.clone();
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
-        emit(
-            &env,
-            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Processing),
-        );
+        emit(&env, Event::StatusUpdated(tx_id, new_status));
     }
 
     pub fn mark_completed(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
-        let old_status = tx.status.clone();
-        tx.status = TransactionStatus::Completed;
+        if tx.status != TransactionStatus::Processing {
+            panic!("transaction must be Processing");
+        }
+        let new_status = TransactionStatus::Completed;
+        tx.status = new_status.clone();
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
         if dlq::get(&env, &tx_id).is_some() {
             dlq::remove(&env, &tx_id);
         }
-        emit(
-            &env,
-            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Completed),
-        );
+        emit(&env, Event::StatusUpdated(tx_id, new_status));
     }
-    // TODO(#26): enforce transition guard — must be Pending or Processing
-    // TODO(#28): validate error_reason is non-empty
+
     pub fn mark_failed(
         env: Env,
         caller: Address,
@@ -284,58 +253,43 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
             panic!("error_reason must not be empty");
         }
         let mut tx = deposits::get(&env, &tx_id);
-        let old_status = tx.status.clone();
-        tx.status = TransactionStatus::Failed;
+        if tx.status == TransactionStatus::Completed {
+            panic!("cannot fail completed transaction");
+        }
+        let new_status = TransactionStatus::Failed;
+        tx.status = new_status.clone();
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
-        emit(
-            &env,
-            Event::StatusUpdated(tx_id.clone(), old_status, TransactionStatus::Failed),
-        );
+        emit(&env, Event::StatusUpdated(tx_id.clone(), new_status));
         let entry = DlqEntry::new(&env, tx_id.clone(), error_reason.clone());
         dlq::push(&env, &entry);
         emit(&env, Event::MovedToDlq(tx_id, error_reason));
     }
 
-    // TODO(#31): emit `DlqRetried` event
     pub fn retry_dlq(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
+        caller.require_auth();
         let mut entry = dlq::get(&env, &tx_id).expect("dlq entry not found");
         let mut tx = deposits::get(&env, &tx_id);
-        let admin = storage::admin::get(&env);
-        if caller != admin && caller != tx.relayer {
-            panic!("not admin or original relayer");
-        }
-        caller.require_auth();
-
-        // Allow either the admin or the original relayer that registered the tx.
-        caller.require_auth();
         let is_admin = caller == storage::admin::get(&env);
         let is_original_relayer = caller == tx.relayer;
         if !is_admin && !is_original_relayer {
-            panic!("not admin or original relayer")
+            panic!("not admin")
         }
-
         if entry.retry_count >= MAX_RETRIES {
             emit(&env, Event::MaxRetriesExceeded(tx_id.clone()));
             panic!("max retries exceeded");
         }
-
-        let old_status = tx.status.clone();
-        tx.status = TransactionStatus::Pending;
-        tx.updated_ledger = env.ledger().sequence();
         entry.retry_count += 1;
         entry.last_retry_ledger = env.ledger().sequence();
+        dlq::push(&env, &entry);
+        tx.status = TransactionStatus::Pending;
+        tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
-        dlq::remove(&env, &tx_id);
-
-        emit(
-            &env,
-            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Pending),
-        );
+        emit(&env, Event::DlqRetried(tx_id.clone()));
+        emit(&env, Event::StatusUpdated(tx_id, TransactionStatus::Pending));
     }
 
-    // TODO(#32): enforce transition guard — must be Pending or Processing
     pub fn cancel_transaction(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
         require_admin(&env, &caller);
@@ -344,10 +298,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         tx.status = TransactionStatus::Cancelled;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
-        emit(
-            &env,
-            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Cancelled),
-        );
+        emit(&env, Event::StatusUpdated(tx_id, TransactionStatus::Cancelled));
     }
 
     pub fn finalize_settlement(
@@ -375,7 +326,6 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
             period_end,
         );
         let id = s.id.clone();
-
         let n = tx_ids.len();
         let mut i: u32 = 0;
         while i < n {
@@ -384,61 +334,30 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
             if tx.settlement_id.len() > 0 {
                 panic!("transaction already settled");
             }
+            if tx.status != TransactionStatus::Completed {
+                panic!("transaction not completed");
+            }
             tx.settlement_id = id.clone();
             tx.updated_ledger = env.ledger().sequence();
             deposits::save(&env, &tx);
             emit(&env, Event::Settled(tx_id, id.clone()));
             i += 1;
         }
-        let s = Settlement::new(
-            &env,
-            asset_code.clone(),
-            tx_ids.clone(),
-            total_amount,
-            period_start,
-            period_end,
-        );
-        let id = s.id.clone();
-        let mut j: u32 = 0;
-        while j < n {
-            let tx_id = tx_ids.get(j).unwrap();
-            let mut tx = deposits::get(&env, &tx_id);
-            tx.settlement_id = id.clone();
-            deposits::save(&env, &tx);
-            emit(&env, Event::Settled(tx_id, id.clone()));
-            j += 1;
-        }
         settlements::save(&env, &s);
-        for tx_id in tx_ids.iter() {
-            let mut tx = deposits::get(&env, &tx_id);
-            tx.settlement_id = id.clone();
-            deposits::save(&env, &tx);
-        }
-        emit(
-            &env,
-            Event::SettlementFinalized(id.clone(), asset_code, total_amount),
-        );
+        emit(&env, Event::SettlementFinalized(id.clone(), asset_code, total_amount));
         id
     }
 
-    // TODO(#40): add `get_dlq_entry(tx_id)` query
-    // TODO(#41): add `get_admin()` query — DONE
-    // TODO(#43): add `get_min_deposit()` query
     pub fn get_dlq_entry(env: Env, tx_id: SorobanString) -> Option<DlqEntry> {
         dlq::get(&env, &tx_id)
     }
-
-    // TODO(#41): add `get_admin()` query
-    // TODO(#43): add `get_min_deposit()` query — DONE
-    // TODO(#44): add `get_max_deposit()` query — DONE
 
     pub fn get_admin(env: Env) -> Address {
         storage::admin::get(&env)
     }
 
-    /// Get the current admin address
-    pub fn get_admin(env: Env) -> Address {
-        admin::get(&env)
+    pub fn get_pending_admin(env: Env) -> Option<Address> {
+        storage::pending_admin::get(&env)
     }
 
     pub fn is_paused(env: Env) -> bool {
