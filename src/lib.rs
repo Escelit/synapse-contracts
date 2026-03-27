@@ -86,6 +86,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
     /// Only the current admin can propose a new admin.
     /// The proposed admin must accept the transfer to complete it.
     pub fn propose_admin(env: Env, caller: Address, new_admin: Address) {
+        require_not_paused(&env);
         require_admin(&env, &caller);
         pending_admin::set(&env, &new_admin);
         let current_admin = admin::get(&env);
@@ -96,6 +97,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
     /// Only the proposed admin can accept the transfer.
     /// After acceptance, the proposed admin becomes the new admin.
     pub fn accept_admin(env: Env, caller: Address) {
+        require_not_paused(&env);
         caller.require_auth();
         let pending = pending_admin::get(&env).expect("no pending admin transfer");
         if caller != pending {
@@ -152,6 +154,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
     }
 
     pub fn set_min_deposit(env: Env, caller: Address, amount: i128) {
+        require_not_paused(&env);
         require_admin(&env, &caller);
         if amount <= 0 { panic!("min deposit must be positive") }
         min_deposit::set(&env, &amount);
@@ -1547,5 +1550,34 @@ mod tests {
         env.as_contract(&contract_id, || {
             crate::access::require_admin_or_relayer(&env, &stranger);
         });
+    }
+
+    #[test]
+    #[should_panic(expected = "contract paused")]
+    fn test_paused_blocks_propose_admin() {
+        let env = Env::default();
+        let (admin, _, _, client) = setup_with_relayer(&env);
+        client.pause(&admin);
+        client.propose_admin(&admin, &Address::generate(&env));
+    }
+
+    #[test]
+    #[should_panic(expected = "contract paused")]
+    fn test_paused_blocks_accept_admin() {
+        let env = Env::default();
+        let (admin, _, _, client) = setup_with_relayer(&env);
+        let new_admin = Address::generate(&env);
+        client.propose_admin(&admin, &new_admin);
+        client.pause(&admin);
+        client.accept_admin(&new_admin);
+    }
+
+    #[test]
+    #[should_panic(expected = "contract paused")]
+    fn test_paused_blocks_set_min_deposit() {
+        let env = Env::default();
+        let (admin, _, _, client) = setup_with_relayer(&env);
+        client.pause(&admin);
+        client.set_min_deposit(&admin, &100i128);
     }
 }

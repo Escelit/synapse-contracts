@@ -1,8 +1,6 @@
 use crate::storage::{admin, pause, pending_admin, relayers};
 use soroban_sdk::{Address, Env};
 
-// TODO(#63): add `require_not_paused` guard and call it in every mutating fn in lib.rs
-
 pub fn require_admin(env: &Env, caller: &Address) {
     caller.require_auth();
     if *caller != admin::get(env) {
@@ -25,7 +23,6 @@ pub fn require_admin_or_relayer(env: &Env, caller: &Address) {
 }
 
 pub fn require_not_paused(env: &Env) {
-    // TODO(#63): wire this into every state-mutating function
     if pause::is_paused(env) {
         panic!("contract paused")
     }
