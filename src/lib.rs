@@ -387,6 +387,9 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         id
     }
 
+    // TODO(#40): add `get_dlq_entry(tx_id)` query
+    // TODO(#41): add `get_admin()` query — DONE
+    // TODO(#43): add `get_min_deposit()` query
     pub fn get_dlq_entry(env: Env, tx_id: SorobanString) -> Option<DlqEntry> {
         dlq::get(&env, &tx_id)
     }
