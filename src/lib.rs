@@ -4,7 +4,7 @@ extern crate alloc;
 
 mod access;
 mod events;
-mod storage;
+pub mod storage;
 pub mod types;
 
 use access::{require_admin, require_not_paused, require_relayer};
@@ -329,8 +329,8 @@ impl SynapseContract {
         let mut i: u32 = 0;
         while i < n {
             let tx_id = tx_ids.get(i).unwrap();
-            let mut tx = deposits::get(&env, &tx_id);
-            if tx.settlement_id.len() > 0 {
+            let tx = deposits::get(&env, &tx_id);
+            if !tx.settlement_id.is_empty() {
                 panic!("transaction already settled");
             }
             if tx.status != TransactionStatus::Completed {

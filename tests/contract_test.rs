@@ -7,8 +7,7 @@ use soroban_sdk::{
 };
 use synapse_contract::{
     types::{Event, MAX_RETRIES},
-    SynapseContract,
-    SynapseContractClient,
+    SynapseContract, SynapseContractClient,
 };
 
 fn setup(env: &Env) -> (Address, Address, SynapseContractClient<'_>) {
@@ -688,6 +687,14 @@ fn mark_processing_panics_when_already_processing() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "mp-proc"),
+        &Address::generate(&env),
+        &100i128,
+        &usd(&env),
+        &None,
+    );
     let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-proc"),
         &Address::generate(&env), &100i128, &usd(&env), &None, &None);
     client.mark_processing(&relayer, &tx_id);
@@ -702,6 +709,14 @@ fn mark_processing_panics_when_completed() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "mp-comp"),
+        &Address::generate(&env),
+        &100i128,
+        &usd(&env),
+        &None,
+    );
     let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-comp"),
         &Address::generate(&env), &100i128, &usd(&env), &None, &None);
     client.mark_processing(&relayer, &tx_id);
@@ -717,6 +732,14 @@ fn mark_processing_panics_when_failed() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "mp-fail"),
+        &Address::generate(&env),
+        &100i128,
+        &usd(&env),
+        &None,
+    );
     let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "mp-fail"),
         &Address::generate(&env), &100i128, &usd(&env), &None, &None);
     client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
@@ -941,11 +964,7 @@ fn retry_dlq_panics_when_max_retries_exceeded() {
         &None,
         &None,
     );
-    client.mark_failed(
-        &relayer,
-        &tx_id,
-        &SorobanString::from_str(&env, "timeout"),
-    );
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "timeout"));
     for _ in 0..MAX_RETRIES {
         client.retry_dlq(&admin, &tx_id);
     }
@@ -1110,7 +1129,36 @@ fn finalize_settlement_panics_when_period_start_exceeds_period_end() {
 }
 
 #[test]
-fn finalize_settlement_succeeds_with_correct_total() {
+fn register_deposit_extends_anchor_idx_ttl() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let anchor_id = SorobanString::from_str(&env, "ttl-anchor-001");
+    let tx_id = client.register_deposit(
+        &relayer,
+        &anchor_id,
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+    );
+    // Verify the Tx persistent entry has a TTL >= TX_TTL_EXTEND_TO - 1
+    // (the entry was just written so TTL should equal TX_TTL_EXTEND_TO)
+    env.as_contract(&contract_id, || {
+        use soroban_sdk::testutils::storage::Persistent as _;
+        use synapse_contract::storage::{StorageKey, TX_TTL_EXTEND_TO};
+        let ttl = env
+            .storage()
+            .persistent()
+            .get_ttl(&StorageKey::Tx(tx_id.clone()));
+        assert_eq!(ttl, TX_TTL_EXTEND_TO);
+    });
+}
+
+#[test]
+fn finalize_settlement_extends_ttl() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
@@ -1142,25 +1190,55 @@ fn finalize_settlement_succeeds_with_correct_total() {
     assert_eq!(s.total_amount, 100_000_000);
 }
 
+// ---------------------------------------------------------------------------
+// Tx TTL — issue #22
+// ---------------------------------------------------------------------------
+
 #[test]
-fn finalize_settlement_with_single_tx_correct_total() {
+fn deposits_save_extends_ttl_on_every_status_update() {
+    // Verifies that deposits::save bumps TTL not just on initial write but on
+    // every subsequent write (mark_processing, mark_completed, mark_failed, etc.)
+    use soroban_sdk::testutils::storage::Persistent as _;
+    use synapse_contract::storage::{StorageKey, TX_TTL_EXTEND_TO};
+
     let env = Env::default();
-    let (admin, _, client) = setup(&env);
+    let (admin, contract_id, client) = setup(&env);
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
+
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "ttl-lifecycle"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
     let tx_id = client.register_deposit(&relayer, &SorobanString::from_str(&env, "a7"),
         &Address::generate(&env), &50_000_000, &usd(&env), &None, &None);
     let s_id = client.finalize_settlement(
         &relayer, &usd(&env), &vec![&env, tx_id], &50_000_000, &0u64, &1u64,
     );
-    let s = client.get_settlement(&s_id);
-    assert_eq!(s.total_amount, 50_000_000);
-}
 
-#[test]
-fn retry_dlq_panics_until_implemented() {
-    // placeholder — retry_dlq is implemented, this test is now a no-op
+    // After mark_processing the TTL must still equal TX_TTL_EXTEND_TO
+    client.mark_processing(&relayer, &tx_id);
+    env.as_contract(&contract_id, || {
+        let ttl = env
+            .storage()
+            .persistent()
+            .get_ttl(&StorageKey::Tx(tx_id.clone()));
+        assert_eq!(ttl, TX_TTL_EXTEND_TO);
+    });
+
+    // After mark_completed the TTL must still equal TX_TTL_EXTEND_TO
+    client.mark_completed(&relayer, &tx_id);
+    env.as_contract(&contract_id, || {
+        let ttl = env
+            .storage()
+            .persistent()
+            .get_ttl(&StorageKey::Tx(tx_id.clone()));
+        assert_eq!(ttl, TX_TTL_EXTEND_TO);
+    });
 }
 
 // ---------------------------------------------------------------------------

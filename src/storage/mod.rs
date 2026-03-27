@@ -4,8 +4,10 @@ use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 // TODO(#59): use temporary() storage for in-flight idempotency locks
 // TODO(#60): add DlqCount key to track total DLQ entries without scanning
 
-const TX_TTL_THRESHOLD: u32 = 17_280;
-const TX_TTL_EXTEND_TO: u32 = 172_800;
+/// Minimum remaining ledgers before a Tx entry's TTL is extended (~1 day at 5s/ledger).
+pub const TX_TTL_THRESHOLD: u32 = 17_280;
+/// Target TTL in ledgers after extension (~10 days at 5s/ledger).
+pub const TX_TTL_EXTEND_TO: u32 = 172_800;
 
 fn extend_persistent_ttl(env: &Env, key: &StorageKey) {
     env.storage().persistent().extend_ttl(key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
@@ -154,6 +156,26 @@ pub mod deposits {
 
 pub mod settlements {
     use super::*;
+
+    const SETTLEMENT_TTL_THRESHOLD: u32 = 535_679;
+    const SETTLEMENT_TTL_EXTEND_TO: u32 = 535_679;
+
+    pub fn save(env: &Env, s: &Settlement) {
+        let key = StorageKey::Settlement(s.id.clone());
+        env.storage().persistent().set(&key, s);
+        env.storage().persistent().extend_ttl(
+            &key,
+            SETTLEMENT_TTL_THRESHOLD,
+            SETTLEMENT_TTL_EXTEND_TO,
+        );
+    }
+    pub fn get(env: &Env, id: &SorobanString) -> Settlement {
+        env.storage()
+            .persistent()
+            .get(&StorageKey::Settlement(id.clone()))
+            .expect("settlement not found")
+    }
+}
 
     pub fn save(env: &Env, s: &Settlement) {
         let key = StorageKey::Settlement(s.id.clone());
