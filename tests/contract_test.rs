@@ -715,7 +715,26 @@ fn mark_processing_panics_when_failed() {
     client.mark_processing(&relayer, &tx_id);
 }
 
-// TODO(#25): test Processing→Completed guard
+// #25: Processing→Completed guard
+#[test]
+#[should_panic(expected = "transaction must be Processing")]
+fn mark_completed_on_non_processing_tx_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "mc-guard-1"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+    );
+    // tx is Pending — mark_completed must panic
+    client.mark_completed(&relayer, &tx_id);
+}
 
 // #26: Completed→Failed transition guard
 #[test]
