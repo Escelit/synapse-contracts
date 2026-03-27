@@ -48,6 +48,7 @@ impl Transaction {
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
+            id: generate_transaction_id(env, &anchor_transaction_id),
             id,
             anchor_transaction_id,
             stellar_account,
@@ -153,6 +154,27 @@ pub enum Event {
     AssetRemoved(SorobanString),
 }
 
+fn generate_transaction_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
+    // Deterministic ID: sha256(anchor_transaction_id), encoded hex.
+    let anchor_bytes = anchor_transaction_id.to_string().into_bytes();
+    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &anchor_bytes));
+    let bytes = hash.to_array();
+    let mut hex = [0u8; 64];
+    const HEX: &[u8] = b"0123456789abcdef";
+    for i in 0..32 {
+        hex[i * 2] = HEX[(bytes[i] >> 4) as usize];
+        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
+    }
+    SorobanString::from_bytes(env, &hex)
+}
+
+fn generate_id(env: &Env) -> SorobanString {
+    let ts = env.ledger().timestamp();
+    let seq = env.ledger().sequence();
+    let mut data = [0u8; 12];
+    data[..8].copy_from_slice(&ts.to_be_bytes());
+    data[8..12].copy_from_slice(&seq.to_be_bytes());
+    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &data));
 fn generate_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
     let data = soroban_sdk::Bytes::from_slice(env, anchor_transaction_id.to_string().as_bytes());
     let hash = env.crypto().sha256(&data);

@@ -896,6 +896,44 @@ mod tests {
     }
 
     #[test]
+    fn test_transaction_id_deterministic_across_envs() {
+        let env1 = Env::default();
+        let env2 = Env::default();
+        let (admin1, contract_id1) = setup(&env1);
+        let (admin2, contract_id2) = setup(&env2);
+        let client1 = SynapseContractClient::new(&env1, &contract_id1);
+        let client2 = SynapseContractClient::new(&env2, &contract_id2);
+
+        let relayer1 = Address::generate(&env1);
+        let relayer2 = Address::generate(&env2);
+        client1.grant_relayer(&admin1, &relayer1);
+        client2.grant_relayer(&admin2, &relayer2);
+
+        client1.add_asset(&admin1, &SorobanString::from_str(&env1, "USD"));
+        client2.add_asset(&admin2, &SorobanString::from_str(&env2, "USD"));
+
+        let anchor_id = SorobanString::from_str(&env1, "deterministic-anchor");
+        let tx_id_1 = client1.register_deposit(
+            &relayer1,
+            &anchor_id,
+            &Address::generate(&env1),
+            &100_000_000,
+            &SorobanString::from_str(&env1, "USD"),
+            &None,
+            &None,
+        );
+
+        let tx_id_2 = client2.register_deposit(
+            &relayer2,
+            &SorobanString::from_str(&env2, "deterministic-anchor"),
+            &Address::generate(&env2),
+            &100_000_000,
+            &SorobanString::from_str(&env2, "USD"),
+            &None,
+            &None,
+        );
+
+        assert_eq!(tx_id_1, tx_id_2);
     fn test_register_deposit_extends_anchor_idx_ttl() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);
