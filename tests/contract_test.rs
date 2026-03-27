@@ -1049,3 +1049,160 @@ fn finalize_settlement_with_single_tx_correct_total() {
 fn retry_dlq_panics_until_implemented() {
     // placeholder — retry_dlq is implemented, this test is now a no-op
 }
+
+// ---------------------------------------------------------------------------
+// DLQ count — feature/issue-60-dlq-count
+// ---------------------------------------------------------------------------
+
+// Feature: dlq-count, Property baseline example
+#[test]
+fn get_dlq_count_returns_zero_on_fresh_contract() {
+    let env = Env::default();
+    let (_, _, client) = setup(&env);
+    assert_eq!(client.get_dlq_count(), 0);
+}
+
+// Feature: dlq-count, Property A: push increments count by 1
+#[test]
+fn get_dlq_count_increments_on_mark_failed() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx1 = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-1"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.mark_failed(&relayer, &tx1, &SorobanString::from_str(&env, "err"));
+    assert_eq!(client.get_dlq_count(), 1);
+
+    let tx2 = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-2"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.mark_failed(&relayer, &tx2, &SorobanString::from_str(&env, "err"));
+    assert_eq!(client.get_dlq_count(), 2);
+}
+
+// Feature: dlq-count, Property B: remove decrements count by 1
+#[test]
+fn get_dlq_count_decrements_on_retry_dlq() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx1 = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-r1"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    let tx2 = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-r2"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.mark_failed(&relayer, &tx1, &SorobanString::from_str(&env, "err"));
+    client.mark_failed(&relayer, &tx2, &SorobanString::from_str(&env, "err"));
+    assert_eq!(client.get_dlq_count(), 2);
+
+    client.retry_dlq(&admin, &tx1);
+    assert_eq!(client.get_dlq_count(), 1);
+}
+
+// Feature: dlq-count, Property B (mark_completed path)
+#[test]
+fn get_dlq_count_decrements_on_mark_completed() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-mc"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.mark_failed(&relayer, &tx, &SorobanString::from_str(&env, "err"));
+    assert_eq!(client.get_dlq_count(), 1);
+
+    // retry resets to Pending, then complete it
+    client.retry_dlq(&admin, &tx);
+    client.mark_processing(&relayer, &tx);
+    client.mark_completed(&relayer, &tx);
+    assert_eq!(client.get_dlq_count(), 0);
+}
+
+// Feature: dlq-count, edge-case: saturating subtraction
+#[test]
+fn get_dlq_count_never_goes_below_zero() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    // Push one entry then remove it
+    let tx = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "dlqc-sat"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.mark_failed(&relayer, &tx, &SorobanString::from_str(&env, "err"));
+    assert_eq!(client.get_dlq_count(), 1);
+    client.retry_dlq(&admin, &tx);
+    assert_eq!(client.get_dlq_count(), 0);
+
+    // mark_completed on a tx not in DLQ — count stays 0 (no underflow)
+    client.mark_processing(&relayer, &tx);
+    client.mark_completed(&relayer, &tx);
+    assert_eq!(client.get_dlq_count(), 0);
+}
+
+// Feature: dlq-count, Property C: push N then remove N returns to 0
+#[test]
+fn get_dlq_count_round_trip_push_then_remove_all() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let anchors = ["rt-1", "rt-2", "rt-3"];
+    let mut tx_ids = vec![&env];
+    for anchor in &anchors {
+        let tx = client.register_deposit(
+            &relayer, &SorobanString::from_str(&env, anchor),
+            &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+        );
+        client.mark_failed(&relayer, &tx, &SorobanString::from_str(&env, "err"));
+        tx_ids.push_back(tx);
+    }
+    assert_eq!(client.get_dlq_count(), 3);
+
+    for tx in tx_ids.iter() {
+        client.retry_dlq(&admin, &tx);
+    }
+    assert_eq!(client.get_dlq_count(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Storage-layer pause enforcement — feature/issue-61-storage-pause-check
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn dlq_push_panics_when_paused() {
+    // mark_failed calls dlq::push internally — verify storage layer enforces pause
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer, &SorobanString::from_str(&env, "pause-dlq-push"),
+        &Address::generate(&env), &50_000_000, &usd(&env), &None, &None,
+    );
+    client.pause(&admin);
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+}

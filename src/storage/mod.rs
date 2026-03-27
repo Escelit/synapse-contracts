@@ -255,6 +255,9 @@ pub mod max_deposit {
 pub mod dlq {
     use super::*;
     pub fn push(env: &Env, entry: &DlqEntry) {
+        if super::pause::is_paused(env) {
+            panic!("contract paused");
+        }
         let mut count: i128 = env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128);
         count += 1;
         env.storage().persistent().set(&StorageKey::DlqCount(0i128), &count);
