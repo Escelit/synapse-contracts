@@ -7,7 +7,7 @@ mod events;
 mod storage;
 pub mod types;
 
-use access::{require_admin, require_not_paused, require_relayer};
+use access::{accept_pending_admin, require_admin, require_not_paused, require_relayer, set_pending_admin};
 use events::emit;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, Env, String as SorobanString, Symbol, Vec};
 use storage::{assets, deposits, dlq, max_deposit, relayers, settlements};

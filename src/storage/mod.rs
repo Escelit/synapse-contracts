@@ -67,6 +67,19 @@ pub mod pending_admin {
     }
 }
 
+pub mod pending_admin {
+    use super::*;
+    pub fn set(env: &Env, candidate: &Address) {
+        env.storage().instance().set(&StorageKey::PendingAdmin, candidate);
+    }
+    pub fn get(env: &Env) -> Option<Address> {
+        env.storage().instance().get(&StorageKey::PendingAdmin)
+    }
+    pub fn clear(env: &Env) {
+        env.storage().instance().remove(&StorageKey::PendingAdmin);
+    }
+}
+
 pub mod pause {
     use super::*;
     pub fn set(env: &Env, paused: bool) {
