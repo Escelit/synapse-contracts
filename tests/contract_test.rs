@@ -644,6 +644,35 @@ fn finalize_settlement_emits_per_tx_events() {
 // TODO(#37): test that period_start > period_end panics
 
 #[test]
+fn register_deposit_extends_anchor_idx_ttl() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let anchor_id = SorobanString::from_str(&env, "ttl-anchor-001");
+    let tx_id = client.register_deposit(
+        &relayer,
+        &anchor_id,
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+    );
+    // Verify the Tx persistent entry has a TTL >= TX_TTL_EXTEND_TO - 1
+    // (the entry was just written so TTL should equal TX_TTL_EXTEND_TO)
+    env.as_contract(&contract_id, || {
+        use synapse_contract::storage::{StorageKey, TX_TTL_EXTEND_TO};
+        use soroban_sdk::testutils::storage::Persistent as _;
+        let ttl = env
+            .storage()
+            .persistent()
+            .get_ttl(&StorageKey::Tx(tx_id.clone()));
+        assert_eq!(ttl, TX_TTL_EXTEND_TO);
+    });
+}
+
+#[test]
 fn finalize_settlement_extends_ttl() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);

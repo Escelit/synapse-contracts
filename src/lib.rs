@@ -4,7 +4,7 @@ extern crate alloc;
 
 mod access;
 mod events;
-mod storage;
+pub mod storage;
 pub mod types;
 
 use access::{require_admin, require_not_paused, require_relayer};
