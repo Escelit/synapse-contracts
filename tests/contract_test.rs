@@ -581,6 +581,42 @@ fn mark_failed_creates_dlq_entry() {
     );
 }
 
+// issue #40: get_dlq_entry query endpoint
+#[test]
+fn get_dlq_entry_returns_none_when_not_found() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let non_existent_id = SorobanString::from_str(&env, "non-existent-tx-id");
+    assert!(client.get_dlq_entry(&non_existent_id).is_none());
+}
+
+#[test]
+fn get_dlq_entry_returns_some_when_found() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "dlq-get-entry"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    let error_reason = SorobanString::from_str(&env, "network timeout");
+    client.mark_failed(&relayer, &tx_id, &error_reason);
+
+    let entry = client.get_dlq_entry(&tx_id);
+    assert!(entry.is_some());
+    let entry = entry.unwrap();
+    assert_eq!(entry.tx_id, tx_id);
+    assert_eq!(entry.error_reason, error_reason);
+    assert_eq!(entry.retry_count, 0);
+}
+
 // issue #23: Pending→Processing guard
 #[test]
 #[should_panic(expected = "transaction must be Pending")]
