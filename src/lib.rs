@@ -559,6 +559,17 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "transaction must be Pending")]
+    fn test_mark_processing_panics_when_not_pending() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mp-not-pending");
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
+        // tx is now Completed — mark_processing must panic
+        client.mark_processing(&relayer, &tx_id);
+    }
+
+    #[test]
     fn test_mark_failed_allowed_when_pending() {
         let env = Env::default();
         let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mf-pending");
