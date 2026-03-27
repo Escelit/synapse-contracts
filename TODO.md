@@ -1,14 +1,15 @@
-# TODO Progress for Issue #59: temporary idempotency locks
+# TODOs for feature/issue-61-storage-pause-check
 
 ## Plan Steps:
-1. [x] Checkout to branch `feature/issue-59-temp-idem-locks` from develop
-2. [x] Add TempLock key & helpers to src/storage/mod.rs
-3. [x] Update register_deposit in src/lib.rs to use lock_temp(anchor_id)
-4. [] Update mark_* functions in src/lib.rs to use lock_temp(tx_id)
-5. [] Update finalize_settlement in src/lib.rs to use lock_temp(settlement_id)
-6. [] Run `cargo test`, update snapshots
-7. [] Commit changes
-8. [] Push branch
-9. [] Create PR to develop
+1. [x] Add pause::is_paused check to deposits::save, settlements::save, dlq::push in src/storage/mod.rs
+2. [ ] Add/update tests in src/lib.rs or snapshots for pause enforcement in storage mutators
+3. [ ] cargo test
+4. [ ] git add . &amp;&amp; git commit -m "Add pause::is_paused checks to storage mutators (#61 #65)"
+5. [ ] git push origin feature/issue-61-storage-pause-check
+6. [ ] gh pr create --title "Add pause checks to storage mutators (#61 #65)" --body "Check pause::is_paused at top of deposits::save, settlements::save, dlq::push.
 
-Current: Completed step 1.
+Defense in depth for storage layer.
+
+Closes #65 #61" --base develop
+
+Updated after each completed step.
