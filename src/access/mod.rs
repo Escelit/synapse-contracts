@@ -28,21 +28,19 @@ pub fn require_not_paused(env: &Env) {
     }
 }
 
-/// @notice Proposes a new admin. Must be called by the current admin.
-/// @dev Stores candidate in pending_admin; does not transfer admin rights yet.
-pub fn set_pending_admin(env: &Env, caller: &Address, candidate: &Address) {
-    require_admin(env, caller);
+/// Stores candidate as pending admin (no auth check — caller must call require_admin first).
+pub fn set_pending_admin(env: &Env, candidate: &Address) {
     pending_admin::set(env, candidate);
 }
 
-/// @notice Completes the two-step admin transfer. Must be called by the pending admin.
-/// @dev Clears pending_admin after promotion to prevent replay.
-pub fn accept_pending_admin(env: &Env, caller: &Address) {
-    caller.require_auth();
+/// Completes the two-step admin transfer. Must be called by the pending admin.
+/// Returns the new admin address.
+pub fn accept_pending_admin(env: &Env, caller: &Address) -> Address {
     let candidate = pending_admin::get(env).expect("no pending admin");
     if *caller != candidate {
         panic!("not pending admin")
     }
-    admin::set(env, caller);
+    admin::set(env, &candidate);
     pending_admin::clear(env);
+    candidate
 }
