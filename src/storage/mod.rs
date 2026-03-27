@@ -141,21 +141,22 @@ pub mod deposits {
 
 pub mod settlements {
     use super::*;
+
+    const SETTLEMENT_TTL_THRESHOLD: u32 = 535_679;
+    const SETTLEMENT_TTL_EXTEND_TO: u32 = 535_679;
+
     pub fn save(env: &Env, s: &Settlement) {
+        let key = StorageKey::Settlement(s.id.clone());
+        env.storage().persistent().set(&key, s);
         env.storage()
             .persistent()
-            .set(&StorageKey::Settlement(s.id.clone()), s);
+            .extend_ttl(&key, SETTLEMENT_TTL_THRESHOLD, SETTLEMENT_TTL_EXTEND_TO);
     }
     pub fn get(env: &Env, id: &SorobanString) -> Settlement {
         env.storage()
             .persistent()
             .get(&StorageKey::Settlement(id.clone()))
             .expect("settlement not found")
-    }
-    pub fn extend_ttl(env: &Env, id: &SorobanString) {
-        env.storage()
-            .persistent()
-            .extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
     }
 }
 
