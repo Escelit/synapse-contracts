@@ -170,6 +170,8 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         max_deposit::set(&env, &amount);
     }
 
+    pub fn get_max_deposit(env: Env) -> i128 {
+        max_deposit::get(&env).unwrap_or(0)
 
     pub fn get_max_deposit(env: Env) -> i128 {
         max_deposit::get(&env)
@@ -799,6 +801,12 @@ mod tests {
         let (admin, contract_id) = setup(&env);
         let client = SynapseContractClient::new(&env, &contract_id);
 
+        // Default should be 0
+        assert_eq!(client.get_max_deposit(), 0);
+
+        // Set to 1000
+        client.set_max_deposit(&admin, &1000i128);
+        assert_eq!(client.get_max_deposit(), 1000i128);
         // Not set yet — should return None
         assert_eq!(client.get_min_deposit(), None);
 
@@ -868,6 +876,9 @@ mod tests {
             client.add_asset(&admin, &SorobanString::from_str(&env, code));
         }
         client.add_asset(&admin, &SorobanString::from_str(&env, "OVERFLOW"));
+        // Set to 5000
+        client.set_max_deposit(&admin, &5000i128);
+        assert_eq!(client.get_max_deposit(), 5000i128);
     }
 
     #[test]
