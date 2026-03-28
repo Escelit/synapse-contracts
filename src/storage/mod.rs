@@ -12,6 +12,7 @@ pub enum StorageKey {
     Paused,
     MinDeposit,
     MaxDeposit,
+    MaxRetries,
     AssetCount,
     Relayer(Address),
     Asset(SorobanString),
@@ -189,6 +190,18 @@ pub mod max_deposit {
 
     pub fn get(env: &Env) -> Option<i128> {
         env.storage().instance().get(&StorageKey::MaxDeposit)
+    }
+}
+
+pub mod max_retries {
+    use super::*;
+    pub fn set(env: &Env, max_retries: &u32) {
+        env.storage()
+            .instance()
+            .set(&StorageKey::MaxRetries, max_retries);
+    }
+    pub fn get(env: &Env) -> Option<u32> {
+        env.storage().instance().get(&StorageKey::MaxRetries)
     }
 }
 
