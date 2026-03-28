@@ -1,8 +1,7 @@
+#![allow(unused_imports)]
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
-use alloc::string::ToString;
 
 pub const MAX_RETRIES: u32 = 5;
-// TODO(#46): add `Cancelled` status for user-initiated cancellations
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
@@ -29,7 +28,6 @@ pub struct Transaction {
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString,
-    pub callback_type: Option<SorobanString>,
 }
 
 impl Transaction {
@@ -43,7 +41,7 @@ impl Transaction {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
-        callback_type: Option<SorobanString>,
+        _unused: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
@@ -59,7 +57,6 @@ impl Transaction {
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
-            callback_type,
         }
     }
 }
@@ -120,69 +117,23 @@ impl DlqEntry {
     }
 }
 
-/// Contract events - one variant per state change.
-// TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
-// TODO(#55): add `DlqRetried(SorobanString)` variant
-// TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
-// TODO(#57): add `AdminTransferred(Address, Address)` variant
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
-    // Lifecycle
-    Initialized(Address),                                    // (admin)
-
-    // Relayer management
-    RelayerGranted(Address),                                 // (relayer)
-    DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
-    StatusUpdated(SorobanString, TransactionStatus),        // (tx_id, new_status)
-    SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
-
-    // Pause
-    ContractPaused(Address),                                 // (admin)
-    ContractUnpaused(Address),                               // (admin)
-
-    // DLQ
-    MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
-    DlqRetried(SorobanString),                               // (tx_id)
-    Settled(SorobanString, SorobanString),                   // (tx_id, settlement_id)
+    Initialized(Address),
+    RelayerGranted(Address),
+    RelayerRevoked(Address),
+    AdminTransferProposed(Address, Address),
+    AdminTransferred(Address, Address),
+    ContractPaused,
+    ContractUnpaused,
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
-}
-
-fn generate_transaction_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
-    // Deterministic ID: sha256(anchor_transaction_id), encoded hex.
-    let anchor_bytes = anchor_transaction_id.to_string().into_bytes();
-    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &anchor_bytes));
-    let bytes = hash.to_array();
-    let mut hex = [0u8; 64];
-    const HEX: &[u8] = b"0123456789abcdef";
-    for i in 0..32 {
-        hex[i * 2] = HEX[(bytes[i] >> 4) as usize];
-        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
-    }
-    SorobanString::from_bytes(env, &hex)
-}
-
-fn generate_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
-    let data = soroban_sdk::Bytes::from_slice(env, anchor_transaction_id.to_string().as_bytes());
-    let hash = env.crypto().sha256(&data);
-    let bytes = hash.to_array();
-    let mut hex = [0u8; 32];
-    const HEX: &[u8] = b"0123456789abcdef";
-    for i in 0..16 {
-        hex[i * 2] = HEX[(bytes[i] >> 4) as usize];
-        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
-    }
-    SorobanString::from_bytes(env, &hex)
-}
-
-fn generate_settlement_id(env: &Env) -> SorobanString {
-    SorobanString::from_str(
-        env,
-        &format!(
-            "settlement-{}-{}",
-            env.ledger().timestamp(),
-            env.ledger().sequence()
-        ),
-    )
+    DepositRegistered(SorobanString, SorobanString),
+    StatusUpdated(SorobanString, TransactionStatus, TransactionStatus),
+    MovedToDlq(SorobanString, SorobanString),
+    DlqRetried(SorobanString),
+    MaxRetriesExceeded(SorobanString),
+    Settled(SorobanString, SorobanString),
+    SettlementFinalized(SorobanString, SorobanString, i128),
 }
