@@ -1078,3 +1078,61 @@ fn finalize_settlement_with_single_tx_correct_total() {
 fn retry_dlq_panics_until_implemented() {
     // placeholder — retry_dlq is implemented, this test is now a no-op
 }
+
+// ---------------------------------------------------------------------------
+// Issue #401 — MaxRetriesExceeded event emitted at retry cap boundary
+// ---------------------------------------------------------------------------
+
+#[test]
+fn max_retries_exceeded_emits_event() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "max-retries-event"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+
+    // Exhaust all retries: each retry resets to Pending, so re-fail before next retry.
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+    for _ in 0..MAX_RETRIES {
+        client.retry_dlq(&admin, &tx_id);
+        client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+    }
+
+    // This call hits retry_count >= MAX_RETRIES — emits MaxRetriesExceeded then panics.
+    let _ = client.try_retry_dlq(&admin, &tx_id);
+
+    let all_events = env.events().all();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let ledger = env.ledger().sequence();
+
+    // Find the MaxRetriesExceeded event among all emitted events.
+    let found = all_events.iter().any(|(contract, event_topics, raw)| {
+        contract == contract_id
+            && event_topics == topics
+            && matches!(
+                event_data(&env, raw),
+                (Event::MaxRetriesExceeded(ref id), _) if *id == tx_id
+            )
+    });
+    assert!(found, "MaxRetriesExceeded event not emitted");
+
+    // Also assert the exact event is the last one emitted before the panic.
+    let last = all_events.last().unwrap();
+    let (last_contract, last_topics, last_data) = last;
+    assert_eq!(last_contract, contract_id);
+    assert_eq!(last_topics, topics);
+    assert_eq!(
+        event_data(&env, last_data),
+        (Event::MaxRetriesExceeded(tx_id), ledger),
+    );
+}
