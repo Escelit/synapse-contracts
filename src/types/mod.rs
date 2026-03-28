@@ -13,7 +13,7 @@ pub enum TransactionStatus {
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
@@ -23,20 +23,18 @@ pub struct Transaction {
     pub asset_code: SorobanString,
     pub memo: Option<SorobanString>,
     pub memo_type: Option<SorobanString>,
-    pub callback_type: Option<SorobanString>,
     pub status: TransactionStatus,
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString,
+    pub callback_type: Option<SorobanString>,
 }
 
 impl Transaction {
     pub fn new(
         env: &Env,
-        id: SorobanString,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
-        relayer: Address,
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
@@ -44,6 +42,7 @@ impl Transaction {
         callback_type: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
+        let id = generate_transaction_id(env, &anchor_transaction_id);
         Self {
             id,
             anchor_transaction_id,
@@ -53,17 +52,17 @@ impl Transaction {
             asset_code,
             memo,
             memo_type,
-            callback_type,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
+            callback_type,
         }
     }
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Settlement {
     pub id: SorobanString,
     pub asset_code: SorobanString,
@@ -97,7 +96,7 @@ impl Settlement {
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DlqEntry {
     pub tx_id: SorobanString,
     pub error_reason: SorobanString,
@@ -118,23 +117,70 @@ impl DlqEntry {
     }
 }
 
+/// Contract events - one variant per state change.
+// TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
-    Initialized(Address),
-    RelayerGranted(Address),
-    RelayerRevoked(Address),
-    AdminTransferred(Address, Address),
-    AdminTransferProposed(Address, Address),
-    ContractPaused,
-    ContractUnpaused,
+    // Lifecycle
+    Initialized(Address),                                    // (admin)
+    AdminTransferred(Address, Address),                      // (old_admin, new_admin)
+    AdminTransferProposed(Address, Address),                 // (current_admin, proposed_admin)
+
+    // Relayer management
+    RelayerGranted(Address),                                 // (relayer)
+    DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
+    StatusUpdated(SorobanString, TransactionStatus),        // (tx_id, new_status)
+    SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
+
+    // Pause
+    ContractPaused(Address),                                 // (admin)
+    ContractUnpaused(Address),                               // (admin)
+
+    // DLQ
+    MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
+    DlqRetried(SorobanString),                               // (tx_id)
+    Settled(SorobanString, SorobanString),                   // (tx_id, settlement_id)
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
-    DepositRegistered(SorobanString, SorobanString),
-    StatusUpdated(SorobanString, TransactionStatus, TransactionStatus),
-    MovedToDlq(SorobanString, SorobanString),
-    DlqRetried(SorobanString),
-    MaxRetriesExceeded(SorobanString),
-    Settled(SorobanString, SorobanString),
-    SettlementFinalized(SorobanString, SorobanString, i128),
+    AdminTransferProposed(Address),
+    AdminTransferAccepted(Address, Address),
+    TransactionCancelled(SorobanString),
+}
+
+pub fn generate_transaction_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
+    let anchor_bytes = anchor_transaction_id.to_string().into_bytes();
+    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &anchor_bytes));
+    let bytes = hash.to_array();
+    let mut hex = [0u8; 64];
+    const HEX: &[u8] = b"0123456789abcdef";
+    for i in 0..32 {
+        hex[i * 2] = HEX[(bytes[i] >> 4) as usize];
+        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
+    }
+    SorobanString::from_bytes(env, &hex)
+}
+
+fn generate_id(env: &Env, anchor_transaction_id: &SorobanString) -> SorobanString {
+    let data = soroban_sdk::Bytes::from_slice(env, anchor_transaction_id.to_string().as_bytes());
+    let hash = env.crypto().sha256(&data);
+    let bytes = hash.to_array();
+    let mut hex = [0u8; 32];
+    const HEX: &[u8] = b"0123456789abcdef";
+    for i in 0..16 {
+        hex[i * 2] = HEX[(bytes[i] >> 4) as usize];
+        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
+    }
+    SorobanString::from_bytes(env, &hex)
+}
+
+fn generate_settlement_id(env: &Env) -> SorobanString {
+    SorobanString::from_str(
+        env,
+        &format!(
+            "settlement-{}-{}",
+            env.ledger().timestamp(),
+            env.ledger().sequence()
+        ),
+    )
 }
