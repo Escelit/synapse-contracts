@@ -355,6 +355,9 @@ impl SynapseContract {
         require_not_paused(&env);
         require_admin(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        if tx.status != TransactionStatus::Pending {
+            panic!("transaction must be Pending to cancel");
+        }
         let old = tx.status.clone();
         tx.status = TransactionStatus::Cancelled;
         tx.updated_ledger = env.ledger().sequence();
