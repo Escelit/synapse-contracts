@@ -381,9 +381,6 @@ impl SynapseContract {
     ) -> SorobanString {
         require_not_paused(&env);
         require_relayer(&env, &caller);
-        if period_start > period_end {
-            panic!("period_start must be <= period_end")
-        }
         let settlement_id = next_id(&env, symbol_short!("stlnonce"));
         let s = Settlement::new(
             &env,

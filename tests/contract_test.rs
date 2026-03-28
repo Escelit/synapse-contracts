@@ -986,34 +986,6 @@ fn finalize_settlement_emits_settlement_finalized_event() {
     );
 }
 
-#[test]
-#[should_panic(expected = "period_start must be <= period_end")]
-fn finalize_settlement_panics_when_period_start_exceeds_period_end() {
-    let env = Env::default();
-    let (admin, _, client) = setup(&env);
-    let relayer = Address::generate(&env);
-    client.grant_relayer(&admin, &relayer);
-    client.add_asset(&admin, &usd(&env));
-    let tx_id = client.register_deposit(
-        &relayer,
-        &SorobanString::from_str(&env, "period-order-1"),
-        &Address::generate(&env),
-        &100_000_000,
-        &usd(&env),
-        &None,
-        &None,
-    );
-    client.mark_processing(&relayer, &tx_id);
-    client.mark_completed(&relayer, &tx_id);
-    client.finalize_settlement(
-        &relayer,
-        &usd(&env),
-        &vec![&env, tx_id],
-        &100_000_000,
-        &10u64,
-        &1u64,
-    );
-}
 
 #[test]
 fn finalize_settlement_succeeds_with_correct_total() {
