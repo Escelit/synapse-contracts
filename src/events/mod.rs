@@ -6,5 +6,6 @@ use soroban_sdk::{symbol_short, Env};
 
 pub fn emit(env: &Env, event: Event) {
     let ledger = env.ledger().sequence();
-    env.events().publish((symbol_short!("synapse"),), (event, ledger));
+    env.events()
+        .publish((symbol_short!("synapse"),), (event, ledger));
 }

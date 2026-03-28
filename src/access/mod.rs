@@ -15,6 +15,7 @@ pub fn require_relayer(env: &Env, caller: &Address) {
     }
 }
 
+#[allow(dead_code)]
 pub fn require_admin_or_relayer(env: &Env, caller: &Address) {
     caller.require_auth();
     if *caller != admin::get(env) && !relayers::has(env, caller) {
