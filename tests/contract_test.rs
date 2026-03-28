@@ -1078,3 +1078,27 @@ fn finalize_settlement_with_single_tx_correct_total() {
 fn retry_dlq_panics_until_implemented() {
     // placeholder — retry_dlq is implemented, this test is now a no-op
 }
+
+// ---------------------------------------------------------------------------
+// Max deposit rejection — regression for #16
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "amount exceeds max deposit")]
+fn register_deposit_panics_when_amount_exceeds_max_deposit() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.set_max_deposit(&admin, &100_000_000);
+    client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-117-above-max"),
+        &Address::generate(&env),
+        &100_000_001,
+        &usd(&env),
+        &None,
+        &None,
+    );
+}
