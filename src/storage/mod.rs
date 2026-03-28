@@ -113,7 +113,10 @@ pub mod assets {
     use super::*;
 
     fn count(env: &Env) -> u32 {
-        env.storage().instance().get(&StorageKey::AssetCount).unwrap_or(0u32)
+        env.storage()
+            .instance()
+            .get(&StorageKey::AssetCount)
+            .unwrap_or(0u32)
     }
 
     fn set_count(env: &Env, count: u32) {
@@ -337,7 +340,10 @@ pub mod temp_lock {
         if env.storage().temporary().has(&lock_key) {
             panic!("idempotency lock active");
         }
-        val
+        env.storage().temporary().set(&lock_key, &true);
+        env.storage()
+            .temporary()
+            .extend_ttl(&lock_key, TEMP_LOCK_THRESHOLD, TEMP_LOCK_EXTEND_TO);
     }
 
     pub fn unlock(env: &Env, key: &SorobanString) {
