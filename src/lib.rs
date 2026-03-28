@@ -152,6 +152,16 @@ impl SynapseContract {
         max_deposit::get(&env).unwrap_or(0)
     }
 
+    pub fn set_max_assets(env: Env, caller: Address, limit: u32) {
+        require_not_paused(&env);
+        require_admin(&env, &caller);
+        storage::max_assets::set(&env, limit);
+    }
+
+    pub fn get_max_assets(env: Env) -> u32 {
+        storage::max_assets::get(&env)
+    }
+
     pub fn register_deposit(
         env: Env,
         caller: Address,

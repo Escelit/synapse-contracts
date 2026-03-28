@@ -30,6 +30,7 @@ pub enum StorageKey {
     Dlq(SorobanString),
     DlqCount(i128),
     TempLock(SorobanString),
+    MaxAssets,
 }
 
 pub mod admin {
@@ -48,7 +49,9 @@ pub mod admin {
 pub mod pending_admin {
     use super::*;
     pub fn set(env: &Env, pending: &Address) {
-        env.storage().instance().set(&StorageKey::PendingAdmin, pending);
+        env.storage()
+            .instance()
+            .set(&StorageKey::PendingAdmin, pending);
     }
     pub fn get(env: &Env) -> Option<Address> {
         env.storage().instance().get(&StorageKey::PendingAdmin)
@@ -109,7 +112,8 @@ pub mod assets {
             return;
         }
         let n = count(env);
-        if n >= MAX_ASSETS {
+        let limit = super::max_assets::get(env);
+        if n >= limit {
             panic!("asset cap reached");
         }
         env.storage()
@@ -158,6 +162,19 @@ pub mod max_deposit {
     }
     pub fn get(env: &Env) -> Option<i128> {
         env.storage().instance().get(&StorageKey::MaxDeposit)
+    }
+}
+
+pub mod max_assets {
+    use super::*;
+    pub fn set(env: &Env, limit: u32) {
+        env.storage().instance().set(&StorageKey::MaxAssets, &limit);
+    }
+    pub fn get(env: &Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&StorageKey::MaxAssets)
+            .unwrap_or(super::MAX_ASSETS)
     }
 }
 
