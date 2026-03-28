@@ -424,6 +424,12 @@ impl SynapseContract {
             .expect("transaction not found")
     }
 
+    pub fn get_transaction_by_anchor_id(env: Env, anchor_transaction_id: SorobanString) -> Transaction {
+        let tx_id = deposits::find_by_anchor_id(&env, &anchor_transaction_id)
+            .expect("transaction not found");
+        deposits::get(&env, &tx_id)
+    }
+
     pub fn get_settlement(env: Env, settlement_id: SorobanString) -> Settlement {
         settlements::get(&env, &settlement_id)
     }

@@ -1111,3 +1111,37 @@ fn finalize_settlement_with_single_tx_correct_total() {
 fn retry_dlq_panics_until_implemented() {
     // placeholder — retry_dlq is implemented, this test is now a no-op
 }
+
+// ---------------------------------------------------------------------------
+// get_transaction_by_anchor_id — issue #83
+// ---------------------------------------------------------------------------
+
+#[test]
+fn get_transaction_by_anchor_id_returns_correct_tx() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let anchor_id = SorobanString::from_str(&env, "issue-83-anchor");
+    let tx_id = client.register_deposit(
+        &relayer,
+        &anchor_id,
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    let tx = client.get_transaction_by_anchor_id(&anchor_id);
+    assert_eq!(tx.id, tx_id);
+    assert_eq!(tx.anchor_transaction_id, anchor_id);
+}
+
+#[test]
+#[should_panic(expected = "transaction not found")]
+fn get_transaction_by_anchor_id_panics_when_not_found() {
+    let env = Env::default();
+    let (_, _, client) = setup(&env);
+    client.get_transaction_by_anchor_id(&SorobanString::from_str(&env, "nonexistent-anchor"));
+}
