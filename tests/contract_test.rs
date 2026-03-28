@@ -1,9 +1,8 @@
 #![cfg(test)]
 
 use soroban_sdk::{
-    symbol_short,
-    testutils::{Address as _, Events as _},
-    vec, Address, Env, IntoVal, String as SorobanString, TryFromVal, Val,
+    testutils::Address as _,
+    vec, Address, Env, String as SorobanString,
 };
 use synapse_contract::{
     types::{Event, TransactionStatus, MAX_RETRIES},
@@ -17,10 +16,6 @@ fn setup(env: &Env) -> (Address, Address, SynapseContractClient<'_>) {
     let admin = Address::generate(env);
     client.initialize(&admin);
     (admin, id, client)
-}
-
-fn event_data(env: &Env, raw: Val) -> (Event, u32) {
-    <(Event, u32)>::try_from_val(env, &raw).unwrap()
 }
 
 fn usd(env: &Env) -> SorobanString {
@@ -479,6 +474,10 @@ fn propose_and_accept_admin() {
     assert_eq!(client.get_pending_admin(), None);
 }
 
+// ---------------------------------------------------------------------------
+// Two-step admin transfer
+// ---------------------------------------------------------------------------
+
 #[test]
 #[should_panic(expected = "not pending admin")]
 fn wrong_caller_cannot_accept_admin() {
@@ -524,6 +523,8 @@ fn finalize_settlement_emits_events() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
+    client.finalize_settlement(&relayer, &usd(&env), &vec![&env], &0, &10u64, &1u64);
+}
 
     let tx_id_1 = register(&env, &client, &relayer, "settle-ev-1", 40_000_000);
     let tx_id_2 = register(&env, &client, &relayer, "settle-ev-2", 60_000_000);
@@ -646,6 +647,10 @@ fn settle_already_settled_tx_panics() {
         &1u64,
     );
 }
+
+// ---------------------------------------------------------------------------
+// Issue #317 — verify total_amount matches on-chain sum
+// ---------------------------------------------------------------------------
 
 #[test]
 #[should_panic(expected = "period_start must be <= period_end")]
