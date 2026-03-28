@@ -1078,3 +1078,45 @@ fn finalize_settlement_with_single_tx_correct_total() {
 fn retry_dlq_panics_until_implemented() {
     // placeholder — retry_dlq is implemented, this test is now a no-op
 }
+
+// ---------------------------------------------------------------------------
+// Issue #98: validate amount > 0 in register_deposit
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "amount must be greater than zero")]
+fn register_deposit_panics_when_amount_is_zero() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "zero-amount"),
+        &Address::generate(&env),
+        &0,
+        &usd(&env),
+        &None,
+        &None,
+    );
+}
+
+#[test]
+#[should_panic(expected = "amount must be greater than zero")]
+fn register_deposit_panics_when_amount_is_negative() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "negative-amount"),
+        &Address::generate(&env),
+        &-1,
+        &usd(&env),
+        &None,
+        &None,
+    );
+}
