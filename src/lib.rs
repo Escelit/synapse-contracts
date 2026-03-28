@@ -274,6 +274,7 @@ impl SynapseContract {
         require_not_paused(&env);
         require_admin(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        let old_status = tx.status.clone();
         tx.status = TransactionStatus::Cancelled;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
@@ -1533,5 +1534,102 @@ mod tests {
         let (admin, _, _, client) = setup_with_relayer(&env);
         client.pause(&admin);
         client.set_min_deposit(&admin, &100i128);
+    }
+
+    // -----------------------------------------------------------------------
+    // StatusUpdated includes old_status — issue #66
+    // -----------------------------------------------------------------------
+
+    fn last_status_updated_event(env: &Env) -> (TransactionStatus, TransactionStatus) {
+        let (_, _, data) = env.events().all().last().unwrap();
+        match Event::try_from_val(env, &data).unwrap() {
+            Event::StatusUpdated(_, old, new) => (old, new),
+            _ => panic!("expected StatusUpdated"),
+        }
+    }
+
+    #[test]
+    fn test_mark_processing_event_includes_old_status() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "su-processing");
+        client.mark_processing(&relayer, &tx_id);
+        let (old, new) = last_status_updated_event(&env);
+        assert_eq!(old, TransactionStatus::Pending);
+        assert_eq!(new, TransactionStatus::Processing);
+    }
+
+    #[test]
+    fn test_mark_completed_event_includes_old_status() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "su-completed");
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
+        let (old, new) = last_status_updated_event(&env);
+        assert_eq!(old, TransactionStatus::Processing);
+        assert_eq!(new, TransactionStatus::Completed);
+    }
+
+    #[test]
+    fn test_mark_failed_event_includes_old_status() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "su-failed");
+        client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+        // second-to-last event is StatusUpdated (last is MovedToDlq)
+        let events = env.events().all();
+        let (_, _, data) = events.get(events.len() - 2).unwrap();
+        match Event::try_from_val(&env, &data).unwrap() {
+            Event::StatusUpdated(_, old, new) => {
+                assert_eq!(old, TransactionStatus::Pending);
+                assert_eq!(new, TransactionStatus::Failed);
+            }
+            _ => panic!("expected StatusUpdated"),
+        }
+    }
+
+    #[test]
+    fn test_retry_dlq_event_includes_old_status() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &SorobanString::from_str(&env, "USD"));
+        let tx_id = client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "su-retry"),
+            &Address::generate(&env),
+            &1i128,
+            &SorobanString::from_str(&env, "USD"),
+            &None,
+            &None,
+        );
+        client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
+        client.retry_dlq(&admin, &tx_id);
+        let (old, new) = last_status_updated_event(&env);
+        assert_eq!(old, TransactionStatus::Failed);
+        assert_eq!(new, TransactionStatus::Pending);
+    }
+
+    #[test]
+    fn test_cancel_transaction_event_includes_old_status() {
+        let env = Env::default();
+        let (admin, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let relayer = Address::generate(&env);
+        client.grant_relayer(&admin, &relayer);
+        client.add_asset(&admin, &SorobanString::from_str(&env, "USD"));
+        let tx_id = client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "su-cancel"),
+            &Address::generate(&env),
+            &1i128,
+            &SorobanString::from_str(&env, "USD"),
+            &None,
+            &None,
+        );
+        client.cancel_transaction(&admin, &tx_id);
+        let (old, new) = last_status_updated_event(&env);
+        assert_eq!(old, TransactionStatus::Pending);
+        assert_eq!(new, TransactionStatus::Cancelled);
     }
 }
