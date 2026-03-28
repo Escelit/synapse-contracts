@@ -65,6 +65,21 @@ fn grant_and_revoke_relayer() {
 }
 
 #[test]
+fn is_relayer_query_reflects_registration_state() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+
+    assert!(!client.is_relayer(&relayer));
+
+    client.grant_relayer(&admin, &relayer);
+    assert!(client.is_relayer(&relayer));
+
+    client.revoke_relayer(&admin, &relayer);
+    assert!(!client.is_relayer(&relayer));
+}
+
+#[test]
 fn grant_relayer_emits_relayer_granted_event() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
