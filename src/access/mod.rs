@@ -1,9 +1,6 @@
 use crate::storage::{admin, pause, pending_admin, relayers};
 use soroban_sdk::{Address, Env};
 
-// TODO(#63): add `require_not_paused` guard and call it in every mutating fn in lib.rs
-// TODO(#65): add `require_admin_or_relayer` for operations either role can perform
-
 pub fn require_admin(env: &Env, caller: &Address) {
     caller.require_auth();
     if *caller != admin::get(env) {
@@ -18,8 +15,14 @@ pub fn require_relayer(env: &Env, caller: &Address) {
     }
 }
 
+pub fn require_admin_or_relayer(env: &Env, caller: &Address) {
+    caller.require_auth();
+    if *caller != admin::get(env) && !relayers::has(env, caller) {
+        panic!("not admin or relayer")
+    }
+}
+
 pub fn require_not_paused(env: &Env) {
-    // TODO(#63): wire this into every state-mutating function
     if pause::is_paused(env) {
         panic!("contract paused")
     }
@@ -42,4 +45,73 @@ pub fn accept_pending_admin(env: &Env, caller: &Address) {
     }
     admin::set(env, caller);
     pending_admin::clear(env);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{SynapseContract, SynapseContractClient};
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    fn setup(env: &Env) -> (Address, Address, Address) {
+        env.mock_all_auths();
+        let contract_id = env.register_contract(None, SynapseContract);
+        let admin = Address::generate(env);
+        SynapseContractClient::new(env, &contract_id).initialize(&admin);
+        (admin, contract_id, Address::generate(env))
+    }
+
+    #[test]
+    fn test_set_pending_admin_stores_candidate() {
+        let env = Env::default();
+        let (admin, contract_id, candidate) = setup(&env);
+        env.as_contract(&contract_id, || {
+            set_pending_admin(&env, &admin, &candidate);
+            assert_eq!(pending_admin::get(&env), Some(candidate));
+        });
+    }
+
+    #[test]
+    #[should_panic(expected = "not admin")]
+    fn test_set_pending_admin_panics_if_not_admin() {
+        let env = Env::default();
+        let (_, contract_id, stranger) = setup(&env);
+        env.as_contract(&contract_id, || {
+            set_pending_admin(&env, &stranger, &stranger);
+        });
+    }
+
+    #[test]
+    fn test_accept_pending_admin_promotes_and_clears() {
+        let env = Env::default();
+        let (admin, contract_id, candidate) = setup(&env);
+        env.as_contract(&contract_id, || {
+            set_pending_admin(&env, &admin, &candidate);
+            accept_pending_admin(&env, &candidate);
+            assert_eq!(admin::get(&env), candidate);
+            assert_eq!(pending_admin::get(&env), None);
+        });
+    }
+
+    #[test]
+    #[should_panic(expected = "not pending admin")]
+    fn test_accept_pending_admin_panics_if_wrong_caller() {
+        let env = Env::default();
+        let (admin, contract_id, candidate) = setup(&env);
+        let stranger = Address::generate(&env);
+        env.as_contract(&contract_id, || {
+            set_pending_admin(&env, &admin, &candidate);
+            accept_pending_admin(&env, &stranger);
+        });
+    }
+
+    #[test]
+    #[should_panic(expected = "no pending admin")]
+    fn test_accept_pending_admin_panics_if_no_proposal() {
+        let env = Env::default();
+        let (_, contract_id, stranger) = setup(&env);
+        env.as_contract(&contract_id, || {
+            accept_pending_admin(&env, &stranger);
+        });
+    }
 }

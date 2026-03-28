@@ -3,8 +3,14 @@ use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 
 // TODO(#60): add DlqCount key to track total DLQ entries without scanning
 
-const TX_TTL_THRESHOLD: u32 = 17_280;
-const TX_TTL_EXTEND_TO: u32 = 172_800;
+/// Minimum remaining ledgers before a Tx entry's TTL is extended (~1 day at 5s/ledger).
+pub const TX_TTL_THRESHOLD: u32 = 17_280;
+/// Target TTL in ledgers after extension (~10 days at 5s/ledger).
+pub const TX_TTL_EXTEND_TO: u32 = 172_800;
+
+fn extend_persistent_ttl(env: &Env, key: &StorageKey) {
+    env.storage().persistent().extend_ttl(key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
+}
 
 pub const MAX_ASSETS: u32 = 20;
 
@@ -16,6 +22,7 @@ pub enum StorageKey {
     MinDeposit,
     MaxDeposit,
     AssetCount,
+    TempLock(SorobanString),
     Relayer(Address),
     Asset(SorobanString),
     Tx(SorobanString),
@@ -78,29 +85,11 @@ pub mod relayers {
 pub mod assets {
     use super::*;
 
-    fn count(env: &Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&StorageKey::AssetCount)
-            .unwrap_or(0u32)
-    }
-
-    fn set_count(env: &Env, n: u32) {
-        env.storage().instance().set(&StorageKey::AssetCount, &n);
-    }
-
     pub fn add(env: &Env, code: &SorobanString) {
         if is_allowed(env, code) {
             return;
         }
-        let n = count(env);
-        if n >= MAX_ASSETS {
-            panic!("max assets reached");
-        }
-        env.storage()
-            .instance()
-            .set(&StorageKey::Asset(code.clone()), &true);
-        set_count(env, n + 1);
+        env.storage().instance().set(&StorageKey::Asset(code.clone()), &true);
     }
 
     pub fn remove(env: &Env, code: &SorobanString) {
@@ -116,6 +105,18 @@ pub mod assets {
     }
 }
 
+pub mod max_deposit {
+    use super::*;
+
+    pub fn set(env: &Env, amount: &i128) {
+        env.storage().instance().set(&StorageKey::MaxDeposit, amount);
+    }
+
+    pub fn get(env: &Env) -> Option<i128> {
+        env.storage().instance().get(&StorageKey::MaxDeposit)
+    }
+}
+
 pub mod min_deposit {
     use super::*;
 
@@ -128,25 +129,10 @@ pub mod min_deposit {
     }
 }
 
-pub mod max_deposit {
-    use super::*;
-    pub fn set(env: &Env, amount: &i128) {
-        env.storage()
-            .instance()
-            .set(&StorageKey::MaxDeposit, amount);
-    }
-    pub fn get(env: &Env) -> Option<i128> {
-        env.storage().instance().get(&StorageKey::MaxDeposit)
-    }
-}
-
 pub mod deposits {
     use super::*;
 
     pub fn save(env: &Env, tx: &Transaction) {
-        if super::pause::is_paused(env) {
-            panic!("contract paused");
-        }
         let key = StorageKey::Tx(tx.id.clone());
         env.storage().persistent().set(&key, tx);
         env.storage().persistent().extend_ttl(&key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
@@ -157,11 +143,10 @@ pub mod deposits {
     }
 
     pub fn get(env: &Env, id: &SorobanString) -> Transaction {
-        let tx_key = StorageKey::Tx(id.clone());
-        env.storage()
-            .persistent()
-            .get(&tx_key)
-            .expect("tx not found")
+        let key = StorageKey::Tx(id.clone());
+        let tx = env.storage().persistent().get(&key).expect("tx not found");
+        extend_persistent_ttl(env, &key);
+        tx
     }
 
     pub fn index_anchor_id(env: &Env, anchor_id: &SorobanString, tx_id: &SorobanString) {
@@ -178,13 +163,17 @@ pub mod deposits {
 pub mod settlements {
     use super::*;
 
+    const SETTLEMENT_TTL_THRESHOLD: u32 = 535_679;
+    const SETTLEMENT_TTL_EXTEND_TO: u32 = 535_679;
+
     pub fn save(env: &Env, s: &Settlement) {
-        if super::pause::is_paused(env) {
-            panic!("contract paused");
-        }
         let key = StorageKey::Settlement(s.id.clone());
         env.storage().persistent().set(&key, s);
-        env.storage().persistent().extend_ttl(&key, 535_679, 535_679);
+        env.storage().persistent().extend_ttl(
+            &key,
+            SETTLEMENT_TTL_THRESHOLD,
+            SETTLEMENT_TTL_EXTEND_TO,
+        );
     }
 
     pub fn get(env: &Env, id: &SorobanString) -> Settlement {
@@ -193,11 +182,19 @@ pub mod settlements {
             .get(&StorageKey::Settlement(id.clone()))
             .expect("settlement not found")
     }
+}
 
-    pub fn extend_ttl(env: &Env, id: &SorobanString) {
-        env.storage()
-            .persistent()
-            .extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
+    pub fn save(env: &Env, s: &Settlement) {
+        let key = StorageKey::Settlement(s.id.clone());
+        env.storage().persistent().set(&key, s);
+        env.storage().persistent().extend_ttl(&key, 535_679, 535_679);
+    }
+
+    pub fn get(env: &Env, id: &SorobanString) -> Settlement {
+        let key = StorageKey::Settlement(id.clone());
+        let s = env.storage().persistent().get(&key).expect("settlement not found");
+        extend_persistent_ttl(env, &key);
+        s
     }
 }
 
@@ -205,41 +202,33 @@ pub mod dlq {
     use super::*;
 
     pub fn push(env: &Env, entry: &DlqEntry) {
+        if super::pause::is_paused(env) {
+            panic!("contract paused");
+        }
         let mut count: i128 = env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128);
         count += 1;
         env.storage().persistent().set(&StorageKey::DlqCount(0i128), &count);
-        env.storage()
-            .persistent()
-            .set(&StorageKey::Dlq(entry.tx_id.clone()), entry);
+        env.storage().persistent().set(&StorageKey::Dlq(entry.tx_id.clone()), entry);
     }
 
     pub fn get(env: &Env, tx_id: &SorobanString) -> Option<DlqEntry> {
-        env.storage()
-            .persistent()
-            .get(&StorageKey::Dlq(tx_id.clone()))
+        let key = StorageKey::Dlq(tx_id.clone());
+        let value = env.storage().persistent().get(&key);
+        if value.is_some() {
+            extend_persistent_ttl(env, &key);
+        }
+        value
     }
 
     pub fn remove(env: &Env, tx_id: &SorobanString) {
         let mut count: i128 = env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128);
         count = count.saturating_sub(1);
         env.storage().persistent().set(&StorageKey::DlqCount(0i128), &count);
-        env.storage()
-            .persistent()
-            .remove(&StorageKey::Dlq(tx_id.clone()));
+        env.storage().persistent().remove(&StorageKey::Dlq(tx_id.clone()));
     }
 
     pub fn get_count(env: &Env) -> i128 {
         env.storage().persistent().get(&StorageKey::DlqCount(0i128)).unwrap_or(0i128)
-    }
-}
-
-pub mod limits {
-    use super::*;
-    pub fn set_min(env: &Env, amount: i128) {
-        env.storage().instance().set(&StorageKey::MinDeposit, &amount);
-    }
-    pub fn get_min(env: &Env) -> i128 {
-        env.storage().instance().get(&StorageKey::MinDeposit).unwrap_or(0)
     }
 }
 
@@ -255,17 +244,16 @@ pub mod temp_lock {
             panic!("idempotency lock active");
         }
         env.storage().temporary().set(&lock_key, &true);
-        env.storage()
-            .temporary()
-            .extend_ttl(&lock_key, TEMP_LOCK_THRESHOLD, TEMP_LOCK_EXTEND_TO);
+        env.storage().temporary().extend_ttl(&lock_key, TEMP_LOCK_THRESHOLD, TEMP_LOCK_EXTEND_TO);
     }
 
     pub fn unlock(env: &Env, key: &SorobanString) {
-        let lock_key = StorageKey::TempLock(key.clone());
-        env.storage().temporary().remove(&lock_key);
+        env.storage().temporary().remove(&StorageKey::TempLock(key.clone()));
     }
 
     pub fn is_locked(env: &Env, key: &SorobanString) -> bool {
         env.storage().temporary().has(&StorageKey::TempLock(key.clone()))
     }
 }
+
+pub use temp_lock::{lock as lock_temp, unlock as unlock_temp, is_locked as is_temp_locked};
