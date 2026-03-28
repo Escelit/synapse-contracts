@@ -305,6 +305,16 @@ fn add_and_remove_asset() {
 }
 
 #[test]
+fn remove_asset_emits_asset_removed_event() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.add_asset(&admin, &usd(&env));
+    client.remove_asset(&admin, &usd(&env));
+    let events = env.events().all();
+    assert!(!events.is_empty());
+}
+
+#[test]
 #[should_panic(expected = "asset not in allowlist")]
 fn remove_asset_rejects_unlisted_asset() {
     let env = Env::default();
