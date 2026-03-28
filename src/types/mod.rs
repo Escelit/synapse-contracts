@@ -1,8 +1,6 @@
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
-use alloc::string::ToString;
 
 pub const MAX_RETRIES: u32 = 5;
-// TODO(#46): add `Cancelled` status for user-initiated cancellations
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
@@ -37,7 +35,6 @@ impl Transaction {
         env: &Env,
         anchor_transaction_id: SorobanString,
         stellar_account: Address,
-        relayer: Address,
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,

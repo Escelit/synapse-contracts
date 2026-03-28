@@ -1,7 +1,6 @@
 use crate::types::{DlqEntry, Settlement, Transaction};
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString};
 
-// TODO(#59): use temporary() storage for in-flight idempotency locks
 // TODO(#60): add DlqCount key to track total DLQ entries without scanning
 
 /// Minimum remaining ledgers before a Tx entry's TTL is extended (~1 day at 5s/ledger).
@@ -31,6 +30,7 @@ pub enum StorageKey {
     Settlement(SorobanString),
     Dlq(SorobanString),
     DlqCount(i128),
+    TempLock(SorobanString),
 }
 
 pub mod admin {
@@ -136,6 +136,10 @@ pub mod deposits {
         let key = StorageKey::Tx(tx.id.clone());
         env.storage().persistent().set(&key, tx);
         env.storage().persistent().extend_ttl(&key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
+        let anchor_key = StorageKey::AnchorIdx(tx.anchor_transaction_id.clone());
+        if env.storage().persistent().has(&anchor_key) {
+            env.storage().persistent().extend_ttl(&anchor_key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
+        }
     }
 
     pub fn get(env: &Env, id: &SorobanString) -> Transaction {
@@ -146,7 +150,9 @@ pub mod deposits {
     }
 
     pub fn index_anchor_id(env: &Env, anchor_id: &SorobanString, tx_id: &SorobanString) {
-        env.storage().persistent().set(&StorageKey::AnchorIdx(anchor_id.clone()), tx_id);
+        let key = StorageKey::AnchorIdx(anchor_id.clone());
+        env.storage().persistent().set(&key, tx_id);
+        env.storage().persistent().extend_ttl(&key, TX_TTL_THRESHOLD, TX_TTL_EXTEND_TO);
     }
 
     pub fn find_by_anchor_id(env: &Env, anchor_id: &SorobanString) -> Option<SorobanString> {
@@ -169,6 +175,7 @@ pub mod settlements {
             SETTLEMENT_TTL_EXTEND_TO,
         );
     }
+
     pub fn get(env: &Env, id: &SorobanString) -> Settlement {
         env.storage()
             .persistent()
@@ -228,8 +235,8 @@ pub mod dlq {
 pub mod temp_lock {
     use super::*;
 
-    const TEMP_LOCK_THRESHOLD: u32 = 3600;
-    const TEMP_LOCK_EXTEND_TO: u32 = 7200;
+    const TEMP_LOCK_THRESHOLD: u32 = 3_600;
+    const TEMP_LOCK_EXTEND_TO: u32 = 7_200;
 
     pub fn lock(env: &Env, key: &SorobanString) {
         let lock_key = StorageKey::TempLock(key.clone());
