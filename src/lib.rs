@@ -15,7 +15,8 @@ use soroban_sdk::{
     contract, contractimpl, symbol_short, Address, Bytes, Env, String as SorobanString, Symbol, Vec,
 };
 use storage::{
-    admin, assets, deposits, dlq, max_deposit, min_deposit, pending_admin, relayers, settlements,
+    admin, assets, deposits, dlq, max_deposit, max_retries, min_deposit, pending_admin, relayers,
+    settlements,
 };
 use types::{DlqEntry, Event, Settlement, Transaction, TransactionStatus, MAX_RETRIES};
 
@@ -177,6 +178,19 @@ impl SynapseContract {
         max_deposit::get(&env).unwrap_or(0)
     }
 
+    pub fn set_max_retries(env: Env, caller: Address, max_retries: u32) {
+        require_not_paused(&env);
+        require_admin(&env, &caller);
+        if max_retries == 0 {
+            panic!("max retries must be greater than 0")
+        }
+        max_retries::set(&env, &max_retries);
+    }
+
+    pub fn get_max_retries(env: Env) -> u32 {
+        max_retries::get(&env).unwrap_or(MAX_RETRIES)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn register_deposit(
         env: Env,
@@ -334,7 +348,8 @@ impl SynapseContract {
         if !is_admin && !is_original_relayer {
             panic!("not admin")
         }
-        if tx.retry_count >= MAX_RETRIES {
+        let current_max_retries = max_retries::get(&env).unwrap_or(MAX_RETRIES);
+        if tx.retry_count >= current_max_retries {
             emit(&env, Event::MaxRetriesExceeded(tx_id.clone()));
             panic!("max retries exceeded");
         }
@@ -427,6 +442,10 @@ impl SynapseContract {
 
     pub fn get_dlq_entry(env: Env, tx_id: SorobanString) -> Option<DlqEntry> {
         dlq::get(&env, &tx_id)
+    }
+
+    pub fn get_dlq_count(env: Env) -> i128 {
+        dlq::get_count(&env)
     }
 
     pub fn get_admin(env: Env) -> Address {

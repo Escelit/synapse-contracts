@@ -13,6 +13,7 @@ pub enum StorageKey {
     Paused,
     MinDeposit,
     MaxDeposit,
+    MaxRetries,
     AssetCount,
     Relayer(Address),
     Asset(SorobanString),
@@ -172,6 +173,18 @@ pub mod max_deposit {
     }
 }
 
+pub mod max_retries {
+    use super::*;
+    pub fn set(env: &Env, max_retries: &u32) {
+        env.storage()
+            .instance()
+            .set(&StorageKey::MaxRetries, max_retries);
+    }
+    pub fn get(env: &Env) -> Option<u32> {
+        env.storage().instance().get(&StorageKey::MaxRetries)
+    }
+}
+
 pub mod deposits {
     use super::*;
 
@@ -253,12 +266,12 @@ pub mod dlq {
         let mut count: i128 = env.storage().persistent().get(&count_key).unwrap_or(0i128);
         count = count.saturating_sub(1);
         env.storage().persistent().set(&count_key, &count);
+        extend_persistent_ttl(env, &count_key);
         env.storage()
             .persistent()
             .remove(&StorageKey::Dlq(tx_id.clone()));
     }
 
-    #[allow(dead_code)]
     pub fn get_count(env: &Env) -> i128 {
         let key = StorageKey::DlqCount(0i128);
         let count = env.storage().persistent().get(&key).unwrap_or(0i128);
