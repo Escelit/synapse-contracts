@@ -1119,3 +1119,49 @@ fn cancel_transaction_panics_when_processing() {
     client.mark_processing(&relayer, &tx_id);
     client.cancel_transaction(&admin, &tx_id);
 }
+
+// ---------------------------------------------------------------------------
+// mark_failed empty error_reason — regression for #28
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "error_reason must not be empty")]
+fn mark_failed_panics_when_error_reason_is_empty() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-119-empty-reason"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, ""));
+}
+
+// ---------------------------------------------------------------------------
+// Asset cap — regression for #13
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "asset cap reached")]
+fn add_asset_panics_when_cap_is_reached() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    // asset codes: A0..A9, B0..B9 = 20 assets (the cap)
+    for i in 0u8..10 {
+        let code = SorobanString::from_str(&env, &format!("A{}", i));
+        client.add_asset(&admin, &code);
+    }
+    for i in 0u8..10 {
+        let code = SorobanString::from_str(&env, &format!("B{}", i));
+        client.add_asset(&admin, &code);
+    }
+    // 21st asset — must panic
+    client.add_asset(&admin, &SorobanString::from_str(&env, "C0"));
+}
