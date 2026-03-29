@@ -58,7 +58,7 @@ impl Transaction {
             asset_code,
             memo,
             memo_type,
-            callback_type,
+            callback_type: None,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,

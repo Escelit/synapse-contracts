@@ -236,6 +236,7 @@ impl SynapseContract {
             asset_code,
             memo,
             memo_type,
+            None,
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
@@ -260,7 +261,7 @@ impl SynapseContract {
         deposits::save(&env, &tx);
         emit(
             &env,
-            Event::StatusUpdated(tx_id, TransactionStatus::Processing),
+            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Processing),
         );
     }
 
@@ -271,6 +272,7 @@ impl SynapseContract {
         if tx.status != TransactionStatus::Processing {
             panic!("transaction must be Processing");
         }
+        let old_status = tx.status.clone();
         tx.status = TransactionStatus::Completed;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
@@ -279,7 +281,7 @@ impl SynapseContract {
         }
         emit(
             &env,
-            Event::StatusUpdated(tx_id, TransactionStatus::Completed),
+            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Completed),
         );
     }
     // TODO(#26): enforce transition guard — must be Pending or Processing
@@ -308,7 +310,7 @@ impl SynapseContract {
         deposits::save(&env, &tx);
         emit(
             &env,
-            Event::StatusUpdated(tx_id.clone(), TransactionStatus::Failed),
+            Event::StatusUpdated(tx_id.clone(), old_status, TransactionStatus::Failed),
         );
         let entry = DlqEntry::new(&env, tx_id.clone(), error_reason.clone());
         dlq::push(&env, &entry);
@@ -340,7 +342,7 @@ impl SynapseContract {
 
         emit(
             &env,
-            Event::StatusUpdated(tx_id, TransactionStatus::Pending),
+            Event::StatusUpdated(tx_id, TransactionStatus::Failed, TransactionStatus::Pending),
         );
     }
 
@@ -349,12 +351,13 @@ impl SynapseContract {
         require_not_paused(&env);
         require_admin(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        let old_status = tx.status.clone();
         tx.status = TransactionStatus::Cancelled;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
         emit(
             &env,
-            Event::StatusUpdated(tx_id, TransactionStatus::Cancelled),
+            Event::StatusUpdated(tx_id, old_status, TransactionStatus::Cancelled),
         );
     }
 
@@ -615,7 +618,6 @@ mod tests {
         );
     }
 
-    #[test]
     #[test]
     #[should_panic(expected = "transaction must be Processing")]
     fn test_mark_completed_panics_when_not_processing() {
