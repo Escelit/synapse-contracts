@@ -291,6 +291,17 @@ fn finalize_settlement_panics_when_paused() {
     );
 }
 
+// Issue #402: revoking a non-existent relayer must panic
+#[test]
+#[should_panic(expected = "address is not a relayer")]
+fn revoking_non_existent_relayer_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let target = Address::generate(&env);
+    // target was never granted — revoke must panic
+    client.revoke_relayer(&admin, &target);
+}
+
 // ---------------------------------------------------------------------------
 // Asset allowlist
 // ---------------------------------------------------------------------------
