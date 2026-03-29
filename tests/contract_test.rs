@@ -772,3 +772,156 @@ fn cancel_transaction_panics_when_paused() {
     client.pause(&admin);
     client.cancel_transaction(&admin, &tx_id);
 }
+
+// ---------------------------------------------------------------------------
+// cancel_admin_transfer — unit tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn cancel_admin_transfer_happy_path() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let pending = Address::generate(&env);
+
+    client.propose_admin(&admin, &pending);
+    assert_eq!(client.get_pending_admin(), Some(pending.clone()));
+
+    client.cancel_admin_transfer(&admin);
+
+    // PendingAdmin must be cleared
+    assert_eq!(client.get_pending_admin(), None);
+
+    // The last event must be AdminTransferCancelled carrying the pending address
+    let all_events = env.events().all();
+    let (evt_contract, evt_topics, evt_data) = all_events.last().unwrap();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    assert_eq!(evt_contract, contract_id);
+    assert_eq!(evt_topics, topics);
+    let (event, _ledger) = event_data(&env, evt_data);
+    assert_eq!(event, Event::AdminTransferCancelled(pending));
+}
+
+#[test]
+#[should_panic(expected = "no pending admin transfer")]
+fn cancel_admin_transfer_no_pending_admin_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.cancel_admin_transfer(&admin);
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn cancel_admin_transfer_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.pause(&admin);
+    client.cancel_admin_transfer(&admin);
+}
+
+#[test]
+#[should_panic(expected = "not admin")]
+fn cancel_admin_transfer_pending_admin_cannot_cancel() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let pending = Address::generate(&env);
+    client.propose_admin(&admin, &pending);
+    // pending admin (address B) tries to cancel — must be rejected
+    client.cancel_admin_transfer(&pending);
+}
+
+// ---------------------------------------------------------------------------
+// cancel_admin_transfer — property-based tests
+// ---------------------------------------------------------------------------
+
+use proptest::prelude::*;
+
+// Feature: admin-transfer-cancelled-variant, Property 2: successful cancellation clears pending admin
+// Validates: Requirements 2.4
+proptest! {
+    #[test]
+    fn prop_cancel_admin_transfer_clears_pending_admin(_seed in any::<u64>()) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, SynapseContract);
+        let client = SynapseContractClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+
+        let pending = Address::generate(&env);
+        client.propose_admin(&admin, &pending);
+
+        client.cancel_admin_transfer(&admin);
+
+        prop_assert_eq!(client.get_pending_admin(), None);
+    }
+}
+
+// Feature: admin-transfer-cancelled-variant, Property 3: event payload matches the cancelled pending admin address
+// Validates: Requirements 2.5, 4.2
+proptest! {
+    #[test]
+    fn prop_cancel_admin_transfer_event_payload_matches_pending_admin(_seed in any::<u64>()) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, SynapseContract);
+        let client = SynapseContractClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+
+        let pending = Address::generate(&env);
+        client.propose_admin(&admin, &pending);
+
+        client.cancel_admin_transfer(&admin);
+
+        let all_events = env.events().all();
+        let (_, _, evt_data) = all_events.last().unwrap();
+        let (event, _ledger) = event_data(&env, evt_data);
+        prop_assert_eq!(event, Event::AdminTransferCancelled(pending));
+    }
+}
+
+// Feature: admin-transfer-cancelled-variant, Property 4: exactly one AdminTransferCancelled event, no other admin-lifecycle events
+// Validates: Requirements 4.1, 4.3
+proptest! {
+    #[test]
+    fn prop_cancel_admin_transfer_exactly_one_cancelled_event_no_other_admin_events(_seed in any::<u64>()) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, SynapseContract);
+        let client = SynapseContractClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+
+        let pending = Address::generate(&env);
+        client.propose_admin(&admin, &pending);
+
+        // Snapshot event count before the cancel call so we only inspect
+        // events emitted during cancel_admin_transfer itself.
+        let events_before = env.events().all().len();
+
+        client.cancel_admin_transfer(&admin);
+
+        let all_events = env.events().all();
+        let total_events = all_events.len();
+
+        let mut cancelled_count = 0u32;
+        let mut transferred_count = 0u32;
+        let mut proposed_count = 0u32;
+
+        for i in events_before..total_events {
+            let (_contract, _topics, raw_data) = all_events.get(i).unwrap();
+            if let Ok((event, _ledger)) = <(Event, u32)>::try_from_val(&env, &raw_data) {
+                match event {
+                    Event::AdminTransferCancelled(_) => cancelled_count += 1,
+                    Event::AdminTransferred(_, _) => transferred_count += 1,
+                    Event::AdminTransferProposed(_, _) => proposed_count += 1,
+                    _ => {}
+                }
+            }
+        }
+
+        prop_assert_eq!(cancelled_count, 1);
+        prop_assert_eq!(transferred_count, 0);
+        prop_assert_eq!(proposed_count, 0);
+    }
+}

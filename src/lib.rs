@@ -101,6 +101,14 @@ impl SynapseContract {
         emit(&env, Event::AdminTransferred(old, new));
     }
 
+    pub fn cancel_admin_transfer(env: Env, caller: Address) {
+        require_not_paused(&env);
+        require_admin(&env, &caller);
+        let pending = pending_admin::get(&env).expect("no pending admin transfer");
+        pending_admin::clear(&env);
+        emit(&env, Event::AdminTransferCancelled(pending));
+    }
+
     pub fn transfer_admin(env: Env, caller: Address, new_admin: Address) {
         require_not_paused(&env);
         require_admin(&env, &caller);
