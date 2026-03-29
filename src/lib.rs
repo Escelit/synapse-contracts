@@ -220,9 +220,8 @@ impl SynapseContract {
                 panic!("amount exceeds max deposit")
             }
         }
-        if let Some(existing) = deposits::find_by_anchor_id(&env, &anchor_transaction_id) {
-            unlock_temp(&env, &anchor_transaction_id);
-            return existing;
+        if deposits::anchor_exists(&env, &anchor_transaction_id) {
+            panic!("anchor_transaction_id already registered");
         }
 
         let tx_id = next_id(&env, symbol_short!("txnonce"));
@@ -1349,5 +1348,44 @@ mod tests {
         let (contract, topics, _) = events.last().unwrap();
         assert_eq!(contract, contract_id);
         assert_eq!(topics, (symbol_short!("synapse"),).into_val(&env));
+    }
+
+    #[test]
+    #[should_panic(expected = "anchor_transaction_id already registered")]
+    fn test_register_deposit_panics_on_duplicate_anchor_id() {
+        let env = Env::default();
+        let (client, relayer, _tx_id) = setup_relayer_deposit(&env, "dup-anchor-1");
+        // second call with same anchor_id must panic
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+        client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "dup-anchor-1"),
+            &stellar,
+            &1i128,
+            &asset,
+            &None,
+            &None,
+        );
+    }
+
+    #[test]
+    fn test_register_deposit_succeeds_with_unique_anchor_id() {
+        let env = Env::default();
+        let (client, relayer, _) = setup_relayer_deposit(&env, "unique-anchor-a");
+        let stellar = Address::generate(&env);
+        let asset = SorobanString::from_str(&env, "USD");
+        // different anchor_id — must succeed
+        let tx_id = client.register_deposit(
+            &relayer,
+            &SorobanString::from_str(&env, "unique-anchor-b"),
+            &stellar,
+            &1i128,
+            &asset,
+            &None,
+            &None,
+        );
+        let tx = client.get_transaction(&tx_id);
+        assert_eq!(tx.anchor_transaction_id, SorobanString::from_str(&env, "unique-anchor-b"));
     }
 }

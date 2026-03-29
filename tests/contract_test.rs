@@ -2498,3 +2498,65 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// feat/reject-duplicate-anchor-id — issue: duplicate anchor IDs
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "anchor_transaction_id already registered")]
+fn register_deposit_panics_on_duplicate_anchor_id() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let anchor_id = SorobanString::from_str(&env, "dup-anchor-ext");
+    client.register_deposit(
+        &relayer,
+        &anchor_id,
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    // second call with same anchor_id must panic
+    client.register_deposit(
+        &relayer,
+        &anchor_id,
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+}
+
+#[test]
+fn register_deposit_succeeds_with_distinct_anchor_ids() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let id1 = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "anchor-x"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    let id2 = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "anchor-y"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    assert_ne!(id1, id2);
+}
