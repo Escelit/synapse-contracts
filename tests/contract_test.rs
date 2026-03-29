@@ -2498,3 +2498,20 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Issue #406 — is_relayer returns correct true/false values
+// ---------------------------------------------------------------------------
+
+#[test]
+fn is_relayer_returns_true_after_grant_and_false_after_revoke() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+
+    assert!(!client.is_relayer(&relayer));
+    client.grant_relayer(&admin, &relayer);
+    assert!(client.is_relayer(&relayer));
+    client.revoke_relayer(&admin, &relayer);
+    assert!(!client.is_relayer(&relayer));
+}
