@@ -129,6 +129,7 @@ pub enum Event {
     Initialized(Address),
     AdminTransferred(Address, Address),
     AdminTransferProposed(Address, Address),
+    AdminTransferCancelled(Address),
 
     // Relayer management
     RelayerGranted(Address),
