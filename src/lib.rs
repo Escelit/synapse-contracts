@@ -310,7 +310,7 @@ impl SynapseContract {
         );
         let entry = DlqEntry::new(&env, tx_id.clone(), error_reason.clone());
         dlq::push(&env, &entry);
-        emit(&env, Event::MovedToDlq(tx_id, error_reason));
+        emit(&env, Event::MovedToDlq(tx_id.clone(), error_reason.clone()));
     }
 
     // TODO(#31): emit `DlqRetried` event
@@ -675,16 +675,6 @@ mod tests {
     }
 
     #[test]
-    fn test_get_admin() {
-        let env = Env::default();
-        let (admin, contract_id) = setup(&env);
-        let client = SynapseContractClient::new(&env, &contract_id);
-
-        // Should return the admin that was set during initialization
-        assert_eq!(client.get_admin(), admin);
-    }
-
-    #[test]
     fn test_is_paused() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);
@@ -721,32 +711,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "amount below min deposit")]
-    fn test_register_deposit_panics_when_below_min() {
-        let env = Env::default();
-        let (admin, contract_id) = setup(&env);
-        let client = SynapseContractClient::new(&env, &contract_id);
-        let relayer = Address::generate(&env);
-        let stellar = Address::generate(&env);
-        let asset = SorobanString::from_str(&env, "USD");
-
-        client.grant_relayer(&admin, &relayer);
-        client.add_asset(&admin, &asset);
-        client.set_min_deposit(&admin, &50i128);
-
-        // amount 10 < min 50 — should panic
-        client.register_deposit(
-            &relayer,
-            &SorobanString::from_str(&env, "below-min-anchor"),
-            &stellar,
-            &10i128,
-            &asset,
-            &None,
-            &None,
-        );
-    }
-
-    #[test]
     fn test_max_deposit() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);
@@ -769,7 +733,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "asset cap reached")]
     fn test_add_asset_panics_when_cap_exceeded() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);

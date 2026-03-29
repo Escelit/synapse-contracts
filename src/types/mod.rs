@@ -1,4 +1,6 @@
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
+use crate::alloc::string::ToString;
+use alloc::format;
 
 pub const MAX_RETRIES: u32 = 5;
 
