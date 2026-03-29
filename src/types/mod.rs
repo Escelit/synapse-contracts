@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
 use crate::alloc::string::ToString;
 use alloc::format;
@@ -45,7 +46,7 @@ impl Transaction {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
-        callback_type: Option<SorobanString>,
+        _unused: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
