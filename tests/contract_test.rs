@@ -1260,10 +1260,6 @@ fn get_settlement_panics_when_not_found() {
     client.get_settlement(&SorobanString::from_str(&env, "nonexistent"));
 }
 
-#[test]
-fn retry_dlq_panics_until_implemented() {
-    // placeholder — retry_dlq is implemented, this test is now a no-op
-}
 #![cfg(test)]
 
 use soroban_sdk::{
