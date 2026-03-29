@@ -2498,3 +2498,106 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Issue #403 — grant_relayer panics on invalid (zero) address
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "invalid relayer address")]
+fn grant_relayer_with_invalid_address_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let zero = Address::from_string(&SorobanString::from_str(
+        &env,
+        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+    ));
+    client.grant_relayer(&admin, &zero);
+}
+
+// ---------------------------------------------------------------------------
+// Issue #404 — two-step admin transfer full flow
+// ---------------------------------------------------------------------------
+
+#[test]
+fn two_step_admin_transfer_propose_and_accept() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    assert_eq!(client.get_pending_admin(), Some(new_admin.clone()));
+    client.accept_admin(&new_admin);
+    assert_eq!(client.get_admin(), new_admin);
+    assert_eq!(client.get_pending_admin(), None);
+}
+
+#[test]
+#[should_panic(expected = "only proposed admin can accept")]
+fn two_step_admin_transfer_wrong_acceptor_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    let stranger = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    client.accept_admin(&stranger);
+}
+
+#[test]
+fn two_step_admin_transfer_cancel_clears_pending() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    client.cancel_admin_transfer(&admin);
+    assert_eq!(client.get_pending_admin(), None);
+    assert_eq!(client.get_admin(), admin);
+}
+
+// ---------------------------------------------------------------------------
+// Issue #405 — settlement_id written back to transactions after settlement
+// ---------------------------------------------------------------------------
+
+#[test]
+fn settlement_id_written_back_to_transactions() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx1 = register(&env, &client, &relayer, "backref-1", 50_000_000);
+    let tx2 = register(&env, &client, &relayer, "backref-2", 50_000_000);
+    client.mark_processing(&relayer, &tx1);
+    client.mark_completed(&relayer, &tx1);
+    client.mark_processing(&relayer, &tx2);
+    client.mark_completed(&relayer, &tx2);
+
+    let settlement_id = client.finalize_settlement(
+        &relayer,
+        &usd(&env),
+        &vec![&env, tx1.clone(), tx2.clone()],
+        &100_000_000,
+        &0u64,
+        &1u64,
+    );
+
+    assert_eq!(client.get_transaction(&tx1).settlement_id, settlement_id);
+    assert_eq!(client.get_transaction(&tx2).settlement_id, settlement_id);
+}
+
+// ---------------------------------------------------------------------------
+// Issue #406 — is_relayer returns correct true/false values
+// ---------------------------------------------------------------------------
+
+#[test]
+fn is_relayer_returns_true_after_grant_and_false_after_revoke() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+
+    assert!(!client.is_relayer(&relayer));
+    client.grant_relayer(&admin, &relayer);
+    assert!(client.is_relayer(&relayer));
+    client.revoke_relayer(&admin, &relayer);
+    assert!(!client.is_relayer(&relayer));
+}
