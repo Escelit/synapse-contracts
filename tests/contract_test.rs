@@ -2498,3 +2498,19 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Relayer stored on Transaction — issue #418
+// ---------------------------------------------------------------------------
+
+#[test]
+fn relayer_address_is_stored_on_transaction() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = register(&env, &client, &relayer, "anchor-rel-001", 100_000_000);
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(tx.relayer, relayer);
+}
