@@ -2498,3 +2498,41 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Issue #404 — two-step admin transfer full flow
+// ---------------------------------------------------------------------------
+
+#[test]
+fn two_step_admin_transfer_propose_and_accept() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    assert_eq!(client.get_pending_admin(), Some(new_admin.clone()));
+    client.accept_admin(&new_admin);
+    assert_eq!(client.get_admin(), new_admin);
+    assert_eq!(client.get_pending_admin(), None);
+}
+
+#[test]
+#[should_panic(expected = "only proposed admin can accept")]
+fn two_step_admin_transfer_wrong_acceptor_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    let stranger = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    client.accept_admin(&stranger);
+}
+
+#[test]
+fn two_step_admin_transfer_cancel_clears_pending() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let new_admin = Address::generate(&env);
+    client.propose_admin(&admin, &new_admin);
+    client.cancel_admin_transfer(&admin);
+    assert_eq!(client.get_pending_admin(), None);
+    assert_eq!(client.get_admin(), admin);
+}
