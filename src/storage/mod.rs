@@ -163,34 +163,12 @@ pub mod assets {
         env.storage().instance().set(&StorageKey::AssetCount, &n);
     }
 
-    pub fn count(env: &Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&StorageKey::AssetCount)
-            .unwrap_or(0u32)
-    }
-
-    fn set_count(env: &Env, n: u32) {
-        env.storage().instance().set(&StorageKey::AssetCount, &n);
-    }
-
-    pub fn count(env: &Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&StorageKey::AssetCount)
-            .unwrap_or(0u32)
-    }
-
-    fn set_count(env: &Env, n: u32) {
-        env.storage().instance().set(&StorageKey::AssetCount, &n);
-    }
-
     pub fn add(env: &Env, code: &SorobanString) {
         if is_allowed(env, code) {
             return;
         }
         let current_count = count(env);
-        if current_count >= MAX_ASSETS {
+        if current_count >= super::max_assets::get(env) {
             panic!("asset cap reached");
         }
         env.storage()
@@ -215,6 +193,16 @@ pub mod assets {
         env.storage()
             .instance()
             .has(&StorageKey::Asset(code.clone()))
+    }
+}
+
+pub mod max_assets {
+    use super::*;
+    pub fn set(env: &Env, count: u32) {
+        env.storage().instance().set(&StorageKey::MaxAssets, &count);
+    }
+    pub fn get(env: &Env) -> u32 {
+        env.storage().instance().get(&StorageKey::MaxAssets).unwrap_or(MAX_ASSETS)
     }
 }
 pub mod deposits {

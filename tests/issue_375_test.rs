@@ -50,7 +50,7 @@ fn test_transaction_failed_event_emitted() {
     for event in events.iter() {
         if let Ok((e, _ledger)) = <(Event, u32)>::try_from_val(&env, &event.2) {
             match e {
-                Event::TransactionFailed(id, reason) => {
+                Event::TransactionFailed(id, _, _, _, reason) => {
                     if id == tx_id && reason == error_reason {
                         found_simplified = true;
                     }
