@@ -853,6 +853,47 @@ fn unrelated_relayer_cannot_retry_dlq() {
     // TODO(#31): test DlqRetried event emitted
 }
 
+/// Regression test for #27: verifies MaxRetriesExceeded event is emitted
+/// when retry_dlq is called after the retry cap (MAX_RETRIES) is already reached.
+#[test]
+fn retry_dlq_emits_max_retries_exceeded_event() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "max-retry-event"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "timeout"));
+
+    // Exhaust all allowed retries (each succeeds and increments retry_count)
+    for _ in 0..MAX_RETRIES {
+        client.retry_dlq(&admin, &tx_id);
+    }
+
+    // This call hits the cap — event is emitted before the panic
+    let _ = client.try_retry_dlq(&admin, &tx_id);
+
+    let all_events = env.events().all();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let ledger = env.ledger().sequence();
+
+    // Find the MaxRetriesExceeded event in the event log
+    let found = all_events.iter().any(|(contract, t, data)| {
+        contract == contract_id
+            && t == topics
+            && event_data(&env, data) == (Event::MaxRetriesExceeded(tx_id.clone()), ledger)
+    });
+    assert!(found, "MaxRetriesExceeded event was not emitted");
+}
+
 #[test]
 #[should_panic(expected = "max retries exceeded")]
 fn retry_dlq_panics_when_max_retries_exceeded() {
