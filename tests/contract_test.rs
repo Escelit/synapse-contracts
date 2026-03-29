@@ -2498,3 +2498,15 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// add_asset length guard — regression for #99
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "asset_code must not exceed 12 characters")]
+fn add_asset_panics_when_code_exceeds_12_chars() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    client.add_asset(&admin, &SorobanString::from_str(&env, "ABCDEFGHIJKLM")); // 13 chars
+}
