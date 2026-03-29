@@ -433,33 +433,18 @@ fn register_deposit_rejects_amount_below_minimum() {
 }
 
 #[test]
-fn register_deposit_is_idempotent() {
+#[should_panic(expected = "duplicate anchor_transaction_id")]
+fn register_deposit_panics_on_duplicate_anchor_id() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
-    let anchor_id = SorobanString::from_str(&env, "anchor-001");
+    let anchor_id = SorobanString::from_str(&env, "duplicate-anchor");
     let depositor = Address::generate(&env);
-    let id1 = client.register_deposit(&relayer, &anchor_id, &depositor, &100_000_000, &usd(&env), &None, &None);
-    let id2 = client.register_deposit(&relayer, &anchor_id, &depositor, &100_000_000, &usd(&env), &None, &None);
-    let id1 = client.register_deposit(
-        &relayer,
-        &anchor_id,
-        &depositor,
-        &100_000_000,
-        &usd(&env),
-        &None,
-    );
-    let id2 = client.register_deposit(
-        &relayer,
-        &anchor_id,
-        &depositor,
-        &100_000_000,
-        &usd(&env),
-        &None,
-    );
-    assert_eq!(id1, id2);
+    client.register_deposit(&relayer, &anchor_id, &depositor, &100_000_000, &usd(&env), &None, &None);
+    // second call with same anchor_id must panic
+    client.register_deposit(&relayer, &anchor_id, &depositor, &100_000_000, &usd(&env), &None, &None);
 }
 
 #[test]
