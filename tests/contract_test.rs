@@ -47,6 +47,7 @@ fn initialize_sets_admin() {
     assert_eq!(client.get_admin(), admin);
 }
 
+
 #[test]
 #[should_panic(expected = "already initialised")]
 fn initialize_twice_panics() {
