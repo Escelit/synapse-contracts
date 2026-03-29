@@ -1,4 +1,7 @@
+#![allow(unused_imports)]
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
+use crate::alloc::string::ToString;
+use alloc::format;
 
 pub const MAX_RETRIES: u32 = 5;
 
@@ -13,7 +16,7 @@ pub enum TransactionStatus {
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
@@ -43,7 +46,7 @@ impl Transaction {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
-        callback_type: Option<SorobanString>,
+        _unused: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
@@ -66,7 +69,7 @@ impl Transaction {
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Settlement {
     pub id: SorobanString,
     pub asset_code: SorobanString,
@@ -100,7 +103,7 @@ impl Settlement {
 }
 
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DlqEntry {
     pub tx_id: SorobanString,
     pub error_reason: SorobanString,
@@ -121,42 +124,26 @@ impl DlqEntry {
     }
 }
 
-/// Contract events — one variant per state change.
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
-    // Lifecycle
     Initialized(Address),
     AdminTransferred(Address, Address),
     AdminTransferProposed(Address, Address),
-
-    // Relayer management
     RelayerGranted(Address),
-    RelayerRevoked(Address),
-
-    // Deposits
-    DepositRegistered(SorobanString, SorobanString), // (tx_id, anchor_id)
-    StatusUpdated(SorobanString, TransactionStatus, TransactionStatus), // (tx_id, old, new)
-
-    // Settlement
-    SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
-    Settled(SorobanString, SorobanString),                   // (tx_id, settlement_id)
-
-    // Pause
+    DepositRegistered(SorobanString, SorobanString),
+    StatusUpdated(SorobanString, TransactionStatus, TransactionStatus),
+    SettlementFinalized(SorobanString, SorobanString, i128),
+    Settled(SorobanString, SorobanString),
     ContractPaused(Address),
     ContractUnpaused(Address),
-
-    // DLQ
-    MovedToDlq(SorobanString, SorobanString), // (tx_id, error_reason)
+    RelayerRevoked(Address),
+    MovedToDlq(SorobanString, SorobanString),
     DlqRetried(SorobanString),
     MaxRetriesExceeded(SorobanString),
-
-    // Assets
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
-
-    // Webhook — emitted on terminal state transitions for external indexers
-    TransactionCompleted(SorobanString, Address, i128, SorobanString), // (tx_id, stellar_account, amount, asset_code)
-    TransactionFailed(SorobanString, Address, i128, SorobanString, SorobanString), // (tx_id, stellar_account, amount, asset_code, error_reason)
-    TransactionCancelled(SorobanString, Address, i128, SorobanString), // (tx_id, stellar_account, amount, asset_code)
+    TransactionCompleted(SorobanString, Address, i128, SorobanString),
+    TransactionFailed(SorobanString, Address, i128, SorobanString, SorobanString),
+    TransactionCancelled(SorobanString, Address, i128, SorobanString),
 }
