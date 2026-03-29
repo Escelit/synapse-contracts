@@ -2498,3 +2498,33 @@ fn set_min_deposit_emits_min_deposit_updated_event() {
     let events = env.events().all();
     assert!(!events.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Issue #419 — memo and memo_type stored on Transaction
+// ---------------------------------------------------------------------------
+
+#[test]
+fn memo_and_memo_type_stored_on_transaction() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let memo_val = SorobanString::from_str(&env, "1234567890");
+    let memo_type_val = SorobanString::from_str(&env, "id");
+
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-419-memo"),
+        &Address::generate(&env),
+        &100_000_000,
+        &usd(&env),
+        &Some(memo_val.clone()),
+        &Some(memo_type_val.clone()),
+    );
+
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(tx.memo, Some(memo_val));
+    assert_eq!(tx.memo_type, Some(memo_type_val));
+}
