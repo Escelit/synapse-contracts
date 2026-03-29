@@ -1070,3 +1070,52 @@ fn register_deposit_panics_when_amount_is_negative() {
         &None,
     );
 }
+
+// ---------------------------------------------------------------------------
+// Max deposit rejection — regression for #16
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "amount exceeds max deposit")]
+fn register_deposit_panics_when_amount_exceeds_max_deposit() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    client.set_max_deposit(&admin, &100_000_000);
+    client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-117-above-max"),
+        &Address::generate(&env),
+        &100_000_001,
+        &usd(&env),
+        &None,
+        &None,
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Cancel guard — regression for #96
+// ---------------------------------------------------------------------------
+
+#[test]
+#[should_panic(expected = "transaction must be Pending to cancel")]
+fn cancel_transaction_panics_when_processing() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-114-cancel-guard"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    client.mark_processing(&relayer, &tx_id);
+    client.cancel_transaction(&admin, &tx_id);
+}
