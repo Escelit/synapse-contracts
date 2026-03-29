@@ -384,6 +384,7 @@ impl SynapseContract {
         tx.updated_ledger = env.ledger().sequence();
         tx.retry_count += 1;
         deposits::save(&env, &tx);
+        dlq::push(&env, &entry);
         dlq::remove(&env, &tx_id);
         emit(&env, Event::DlqRetried(tx_id.clone()));
         emit(
