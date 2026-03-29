@@ -26,14 +26,12 @@ pub struct SynapseContract;
 fn next_id(env: &Env, counter_key: Symbol) -> SorobanString {
     let nonce: u32 = env.storage().instance().get(&counter_key).unwrap_or(0);
     env.storage().instance().set(&counter_key, &(nonce + 1));
-
     let ts = env.ledger().timestamp();
     let seq = env.ledger().sequence();
     let mut data = [0u8; 16];
     data[..8].copy_from_slice(&ts.to_be_bytes());
     data[8..12].copy_from_slice(&seq.to_be_bytes());
     data[12..16].copy_from_slice(&nonce.to_be_bytes());
-
     let hash = env.crypto().sha256(&Bytes::from_slice(env, &data));
     let bytes = hash.to_array();
     let mut hex = [0u8; 32];
@@ -68,7 +66,7 @@ impl SynapseContract {
         }
         admin.require_auth();
         storage::admin::set(&env, &admin);
-        emit(&env, Event::Initialized(admin));
+        emit(&env, &admin, Event::Initialized(admin.clone()));
     }
 
     pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
@@ -85,7 +83,7 @@ impl SynapseContract {
             panic!("address is not a relayer")
         }
         relayers::remove(&env, &relayer);
-        emit(&env, Event::RelayerRevoked(relayer));
+        emit(&env, &caller, Event::RelayerRevoked(relayer));
     }
 
     pub fn propose_admin(env: Env, caller: Address, new_admin: Address) {
@@ -136,9 +134,7 @@ impl SynapseContract {
 
         let mut buf = [0u8; 12];
         let len = asset_code.len() as usize;
-        if len > buf.len() {
-            panic!("invalid asset code")
-        }
+        if len > buf.len() { panic!("invalid asset code") }
         asset_code.copy_into_slice(&mut buf[..len]);
         for byte in &buf[..len] {
             if !byte.is_ascii_uppercase() && !byte.is_ascii_digit() {
@@ -147,17 +143,15 @@ impl SynapseContract {
         }
 
         assets::add(&env, &asset_code);
-        emit(&env, Event::AssetAdded(asset_code));
+        emit(&env, &caller, Event::AssetAdded(asset_code));
     }
 
     pub fn remove_asset(env: Env, caller: Address, asset_code: SorobanString) {
         require_not_paused(&env);
         require_admin(&env, &caller);
-        if !assets::is_allowed(&env, &asset_code) {
-            panic!("asset not in allowlist");
-        }
+        if !assets::is_allowed(&env, &asset_code) { panic!("asset not in allowlist") }
         assets::remove(&env, &asset_code);
-        emit(&env, Event::AssetRemoved(asset_code));
+        emit(&env, &caller, Event::AssetRemoved(asset_code));
     }
 
     pub fn is_asset_allowed(env: Env, asset_code: SorobanString) -> bool {
@@ -180,9 +174,7 @@ impl SynapseContract {
     pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
         require_not_paused(&env);
         require_admin(&env, &caller);
-        if amount <= 0 {
-            panic!("max deposit must be positive")
-        }
+        if amount <= 0 { panic!("max deposit must be positive") }
         max_deposit::set(&env, &amount);
     }
 
@@ -220,7 +212,6 @@ impl SynapseContract {
             panic!("anchor_transaction_id must not be empty")
         }
         assets::require_allowed(&env, &asset_code);
-
         if let Some(min) = min_deposit::get(&env) {
             if amount < min {
                 panic!("amount below min deposit")
@@ -463,7 +454,7 @@ impl SynapseContract {
             tx.settlement_id = id.clone();
             tx.updated_ledger = env.ledger().sequence();
             deposits::save(&env, &tx);
-            emit(&env, Event::Settled(tx_id, id.clone()));
+            emit(&env, &caller, Event::Settled(tx_id, id.clone()));
             i += 1;
         }
 
