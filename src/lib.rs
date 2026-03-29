@@ -72,6 +72,9 @@ impl SynapseContract {
     pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         require_not_paused(&env);
         require_admin(&env, &caller);
+        if relayers::has(&env, &relayer) {
+            panic!("address is already a relayer")
+        }
         relayers::add(&env, &relayer);
         emit(&env, Event::RelayerGranted(relayer));
     }
@@ -489,6 +492,10 @@ impl SynapseContract {
         dlq::get_count(&env)
     }
 
+    pub fn is_initialized(env: Env) -> bool {
+        env.storage().instance().has(&storage::StorageKey::Admin)
+    }
+
     pub fn get_admin(env: Env) -> Address {
         storage::admin::get(&env)
     }
@@ -499,9 +506,5 @@ impl SynapseContract {
 
     pub fn is_relayer(env: Env, address: Address) -> bool {
         relayers::has(&env, &address)
-    }
-
-    pub fn get_dlq_count(env: Env) -> i128 {
-        dlq::get_count(&env)
     }
 }

@@ -1,8 +1,9 @@
 #![cfg(test)]
 
 use soroban_sdk::{
-    testutils::Address as _,
-    vec, Address, Env, String as SorobanString,
+    symbol_short,
+    testutils::{Address as _, Events as _},
+    vec, Address, Env, IntoVal, String as SorobanString, TryFromVal, Val,
 };
 use synapse_contract::{
     types::{Event, TransactionStatus, MAX_RETRIES},
@@ -40,6 +41,10 @@ fn register(
     )
 }
 
+fn event_data(env: &Env, data: Val) -> (Event, u32) {
+    <(Event, u32)>::try_from_val(env, &data).unwrap()
+}
+
 #[test]
 fn initialize_sets_admin() {
     let env = Env::default();
@@ -47,6 +52,21 @@ fn initialize_sets_admin() {
     assert_eq!(client.get_admin(), admin);
 }
 
+
+#[test]
+fn is_initialized_reflects_bootstrap_state() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let id = env.register_contract(None, SynapseContract);
+    let client = SynapseContractClient::new(&env, &id);
+    let admin = Address::generate(&env);
+
+    assert!(!client.is_initialized());
+
+    client.initialize(&admin);
+
+    assert!(client.is_initialized());
+}
 
 #[test]
 #[should_panic(expected = "already initialised")]
@@ -65,6 +85,38 @@ fn grant_and_revoke_relayer() {
     assert!(client.is_relayer(&relayer));
     client.revoke_relayer(&admin, &relayer);
     assert!(!client.is_relayer(&relayer));
+}
+
+#[test]
+fn grant_relayer_emits_event() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+    let relayer = Address::generate(&env);
+
+    client.grant_relayer(&admin, &relayer);
+
+    let all_events = env.events().all();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let ledger = env.ledger().sequence();
+    let event_count = all_events.len();
+    let (event_contract, event_topics, event_data_val) = all_events.get(event_count - 1).unwrap();
+
+    assert_eq!(event_contract, contract_id);
+    assert_eq!(event_topics, topics);
+    assert_eq!(
+        event_data(&env, event_data_val),
+        (Event::RelayerGranted(relayer), ledger),
+    );
+}
+
+#[test]
+#[should_panic(expected = "address is already a relayer")]
+fn grant_existing_relayer_panics() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.grant_relayer(&admin, &relayer);
 }
 
 #[test]
@@ -92,6 +144,59 @@ fn pause_and_unpause() {
     assert!(client.is_paused());
     client.unpause(&admin);
     assert!(!client.is_paused());
+}
+
+#[test]
+fn pause_emits_event() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+
+    client.pause(&admin);
+
+    let all_events = env.events().all();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let ledger = env.ledger().sequence();
+    let event_count = all_events.len();
+    let (event_contract, event_topics, event_data_val) = all_events.get(event_count - 1).unwrap();
+
+    assert_eq!(event_contract, contract_id);
+    assert_eq!(event_topics, topics);
+    assert_eq!(
+        event_data(&env, event_data_val),
+        (Event::ContractPaused(admin), ledger),
+    );
+}
+
+#[test]
+fn unpause_emits_event() {
+    let env = Env::default();
+    let (admin, contract_id, client) = setup(&env);
+
+    client.pause(&admin);
+    client.unpause(&admin);
+
+    let all_events = env.events().all();
+    let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let ledger = env.ledger().sequence();
+    let event_count = all_events.len();
+    let (event_contract, event_topics, event_data_val) = all_events.get(event_count - 1).unwrap();
+
+    assert_eq!(event_contract, contract_id);
+    assert_eq!(event_topics, topics);
+    assert_eq!(
+        event_data(&env, event_data_val),
+        (Event::ContractUnpaused(admin), ledger),
+    );
+}
+
+#[test]
+#[should_panic(expected = "contract paused")]
+fn grant_relayer_panics_when_paused() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+
+    client.pause(&admin);
+    client.grant_relayer(&admin, &Address::generate(&env));
 }
 
 #[test]
@@ -526,8 +631,6 @@ fn finalize_settlement_emits_events() {
     let relayer = Address::generate(&env);
     client.grant_relayer(&admin, &relayer);
     client.add_asset(&admin, &usd(&env));
-    client.finalize_settlement(&relayer, &usd(&env), &vec![&env], &0, &10u64, &1u64);
-}
 
     let tx_id_1 = register(&env, &client, &relayer, "settle-ev-1", 40_000_000);
     let tx_id_2 = register(&env, &client, &relayer, "settle-ev-2", 60_000_000);
