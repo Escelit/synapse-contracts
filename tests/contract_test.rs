@@ -628,6 +628,39 @@ fn mark_failed_creates_dlq_entry() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// get_transaction — issue #82
+// ---------------------------------------------------------------------------
+
+#[test]
+fn get_transaction_returns_correct_tx() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "issue-82-get"),
+        &Address::generate(&env),
+        &75_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(tx.id, tx_id);
+    assert_eq!(tx.amount, 75_000_000);
+}
+
+#[test]
+#[should_panic(expected = "transaction not found")]
+fn get_transaction_panics_when_not_found() {
+    let env = Env::default();
+    let (_, _, client) = setup(&env);
+    client.get_transaction(&SorobanString::from_str(&env, "nonexistent"));
+}
+
 // issue #40: get_dlq_entry query endpoint
 #[test]
 fn get_dlq_entry_returns_none_when_not_found() {

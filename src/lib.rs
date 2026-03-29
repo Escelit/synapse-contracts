@@ -416,7 +416,10 @@ impl SynapseContract {
 
     // Removed duplicate is_paused definition
     pub fn get_transaction(env: Env, tx_id: SorobanString) -> Transaction {
-        deposits::get(&env, &tx_id)
+        env.storage()
+            .persistent()
+            .get(&storage::StorageKey::Tx(tx_id))
+            .expect("transaction not found")
     }
 
     pub fn get_settlement(env: Env, settlement_id: SorobanString) -> Settlement {
