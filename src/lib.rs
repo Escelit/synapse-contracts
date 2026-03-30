@@ -200,6 +200,7 @@ impl SynapseContract {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
+        callback_type: Option<SorobanString>,
     ) -> SorobanString {
         require_not_paused(&env);
         require_relayer(&env, &caller);
@@ -236,6 +237,7 @@ impl SynapseContract {
             asset_code,
             memo,
             memo_type,
+            callback_type,
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
@@ -486,7 +488,7 @@ mod tests {
         client.grant_relayer(&admin, &relayer);
         client.add_asset(&admin, &asset);
         let tx_id =
-            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None);
+            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None, &None);
         (client, relayer, tx_id)
     }
 
@@ -774,6 +776,7 @@ mod tests {
             &SorobanString::from_str(&env1, "USD"),
             &None,
             &None,
+            &None,
         );
 
         let tx_id_2 = client2.register_deposit(
@@ -782,6 +785,7 @@ mod tests {
             &Address::generate(&env2),
             &100_000_000,
             &SorobanString::from_str(&env2, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -800,7 +804,7 @@ mod tests {
         client.grant_relayer(&admin, &relayer);
         client.add_asset(&admin, &asset);
         let tx_id =
-            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None);
+            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None, &None);
         let anchor_key = StorageKey::AnchorIdx(anchor_id);
         let tx_key = StorageKey::Tx(tx_id);
         let (ttl_anchor, ttl_tx) = env.as_contract(&contract_id, || {
@@ -837,6 +841,7 @@ mod tests {
             &stellar,
             &1i128,
             &asset,
+            &None,
             &None,
             &None,
         );
@@ -882,6 +887,7 @@ mod tests {
             &stellar,
             &100i128,
             &asset,
+            &None,
             &None,
             &None,
         );
@@ -945,6 +951,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         client.mark_processing(&relayer, &tx_id);
@@ -1003,6 +1010,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         // Cancel the transaction
@@ -1037,6 +1045,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         client.mark_processing(&relayer, &tx_id);
@@ -1149,6 +1158,7 @@ mod tests {
             &SorobanString::from_str(&env, "USD"),
             &None,
             &None,
+            &None,
         );
     }
 
@@ -1163,6 +1173,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1181,6 +1192,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1202,6 +1214,7 @@ mod tests {
             &SorobanString::from_str(&env, "USD"),
             &None,
             &None,
+            &None,
         );
         client.pause(&admin);
         client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
@@ -1218,6 +1231,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1237,6 +1251,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );

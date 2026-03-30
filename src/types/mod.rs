@@ -46,7 +46,7 @@ impl Transaction {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
-        _unused: Option<SorobanString>,
+        callback_type: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
