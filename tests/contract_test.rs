@@ -1095,6 +1095,7 @@ fn unrelated_relayer_cannot_retry_dlq() {
     );
 
     client.retry_dlq(&relayer2, &tx_id);
+}
 // TODO(#31): test DlqRetried event emitted
 
 /// Regression test for #27: verifies MaxRetriesExceeded event is emitted
@@ -1277,6 +1278,7 @@ fn finalize_settlement_emits_settlement_finalized_event() {
         event_data(&env, event_data_3),
         (Event::SettlementFinalized(settlement_id, usd(&env), 100_000_000), ledger),
     );
+}
 
 #[test]
 #[should_panic(expected = "transaction not completed")]

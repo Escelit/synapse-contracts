@@ -186,6 +186,16 @@ impl SynapseContract {
         max_deposit::get(&env).unwrap_or(0)
     }
 
+    pub fn set_max_assets(env: Env, caller: Address, count: u32) {
+        require_not_paused(&env);
+        require_admin(&env, &caller);
+        storage::max_assets::set(&env, count);
+    }
+
+    pub fn get_max_assets(env: Env) -> u32 {
+        storage::max_assets::get(&env)
+    }
+
     // TODO(#16): enforce maximum deposit amount (configurable by admin) — DONE
 
     // TODO(#15): enforce minimum deposit amount (configurable by admin)
@@ -273,6 +283,7 @@ impl SynapseContract {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        let old_status = tx.status.clone();
         if tx.status != TransactionStatus::Processing {
             panic!("transaction must be Processing");
         }
@@ -319,6 +330,7 @@ impl SynapseContract {
         let entry = DlqEntry::new(&env, tx_id.clone(), error_reason.clone());
         dlq::push(&env, &entry);
         emit(&env, Event::MovedToDlq(tx_id.clone(), error_reason.clone()));
+        emit(&env, Event::DlqEntryAdded(tx_id));
     }
 
     // TODO(#31): emit `DlqRetried` event
@@ -332,6 +344,7 @@ impl SynapseContract {
         }
         caller.require_auth();
 
+        let old_status = tx.status.clone();
         if entry.retry_count >= MAX_RETRIES {
             emit(&env, Event::MaxRetriesExceeded(tx_id.clone()));
             panic!("max retries exceeded");
@@ -455,6 +468,14 @@ impl SynapseContract {
 
     pub fn is_paused(env: Env) -> bool {
         storage::pause::is_paused(&env)
+    }
+
+    pub fn asset_count(env: Env) -> u32 {
+        assets::count(&env)
+    }
+
+    pub fn relayer_count(env: Env) -> u32 {
+        relayers::count(&env)
     }
 }
 
@@ -592,6 +613,19 @@ mod tests {
         client.mark_failed(&relayer, &tx_id, &err);
         let tx = client.get_transaction(&tx_id);
         assert!(matches!(tx.status, TransactionStatus::Failed));
+    }
+
+    #[test]
+    fn test_mark_failed_emits_dlq_entry_added_event() {
+        let env = Env::default();
+        let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mf-dlq-event");
+        let err = SorobanString::from_str(&env, "boom");
+        client.mark_failed(&relayer, &tx_id, &err);
+        
+        let events = env.events().all();
+        let (_, _, data) = events.last().unwrap();
+        let (event, _): (Event, u32) = <(Event, u32)>::from_val(&env, &data);
+        assert_eq!(event, Event::DlqEntryAdded(tx_id));
     }
 
     #[test]

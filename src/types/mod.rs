@@ -140,6 +140,7 @@ pub enum Event {
     ContractUnpaused(Address),
     RelayerRevoked(Address),
     MovedToDlq(SorobanString, SorobanString),
+    DlqEntryAdded(SorobanString),
     DlqRetried(SorobanString),
     MaxRetriesExceeded(SorobanString),
     AssetAdded(SorobanString),
