@@ -355,6 +355,7 @@ fn remove_asset_rejects_unlisted_asset() {
     client.remove_asset(&admin, &usd(&env));
 }
 
+// Issue #392: register_deposit with unlisted asset panics
 #[test]
 #[should_panic(expected = "asset not allowed")]
 fn register_deposit_rejects_unlisted_asset() {
