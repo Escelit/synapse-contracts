@@ -987,6 +987,51 @@ fn finalize_settlement_emits_settlement_finalized_event() {
 }
 
 #[test]
+fn test_finalize_settlement_emits_finalized_event() {
+    // 1.1 Set up environment and contract state
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "evt-test-1"),
+        &Address::generate(&env),
+        &50_000_000,
+        &usd(&env),
+        &None,
+        &None,
+    );
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+
+    // 1.2 Call finalize_settlement and capture the returned settlement_id
+    let total_amount: i128 = 50_000_000;
+    let settlement_id = client.finalize_settlement(
+        &relayer,
+        &usd(&env),
+        &vec![&env, tx_id],
+        &total_amount,
+        &0u64,
+        &1u64,
+    );
+
+    // 1.3 Assert event list is non-empty and decode the last event
+    let all_events = env.events().all();
+    assert!(all_events.len() > 0);
+    let (_, _, last_event_data) = all_events.last().unwrap();
+    let (decoded_event, _) = event_data(&env, last_event_data);
+
+    // 1.4 Assert all three SettlementFinalized payload fields
+    assert_eq!(
+        decoded_event,
+        Event::SettlementFinalized(settlement_id, usd(&env), total_amount),
+    );
+}
+
+#[test]
 #[should_panic(expected = "period_start must be <= period_end")]
 fn finalize_settlement_panics_when_period_start_exceeds_period_end() {
     let env = Env::default();
