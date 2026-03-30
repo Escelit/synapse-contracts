@@ -1,0 +1,22 @@
+On branch feature/issue-110-max-deposit-updated-event
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/events/mod.rs
+	modified:   src/lib.rs
+	modified:   src/storage/mod.rs
+	modified:   src/types/mod.rs
+	modified:   tests/contract_test.rs
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	cargo_version.txt
+	check_output.txt
+	git_status.txt
+	rustc_version.txt
+	test_output.txt
+	test_output2.txt
+	test_output3.txt
+	toolchain_list.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
