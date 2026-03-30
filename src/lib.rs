@@ -200,9 +200,13 @@ impl SynapseContract {
         asset_code: SorobanString,
         memo: Option<SorobanString>,
         memo_type: Option<SorobanString>,
+        callback_type: Option<SorobanString>,
     ) -> SorobanString {
         require_not_paused(&env);
         require_relayer(&env, &caller);
+        if amount <= 0 {
+            panic!("amount must be positive");
+        }
         if anchor_transaction_id.len() == 0 {
             panic!("anchor_transaction_id must not be empty")
         }
@@ -220,9 +224,8 @@ impl SynapseContract {
                 panic!("amount exceeds max deposit")
             }
         }
-        if let Some(existing) = deposits::find_by_anchor_id(&env, &anchor_transaction_id) {
-            unlock_temp(&env, &anchor_transaction_id);
-            return existing;
+        if deposits::anchor_exists(&env, &anchor_transaction_id) {
+            panic!("anchor_transaction_id already registered");
         }
 
         let tx_id = next_id(&env, symbol_short!("txnonce"));
@@ -236,7 +239,7 @@ impl SynapseContract {
             asset_code,
             memo,
             memo_type,
-            None,
+            callback_type,
         );
         let id = tx.id.clone();
         deposits::save(&env, &tx);
@@ -399,6 +402,10 @@ impl SynapseContract {
         settlements::save(&env, &s);
         emit(
             &env,
+            Event::SettlementCreated(settlement_id.clone()),
+        );
+        emit(
+            &env,
             Event::SettlementFinalized(settlement_id.clone(), asset_code, total_amount),
         );
         settlement_id
@@ -489,7 +496,7 @@ mod tests {
         client.grant_relayer(&admin, &relayer);
         client.add_asset(&admin, &asset);
         let tx_id =
-            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None);
+            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None, &None);
         (client, relayer, tx_id)
     }
 
@@ -776,6 +783,7 @@ mod tests {
             &SorobanString::from_str(&env1, "USD"),
             &None,
             &None,
+            &None,
         );
 
         let tx_id_2 = client2.register_deposit(
@@ -784,6 +792,7 @@ mod tests {
             &Address::generate(&env2),
             &100_000_000,
             &SorobanString::from_str(&env2, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -802,7 +811,7 @@ mod tests {
         client.grant_relayer(&admin, &relayer);
         client.add_asset(&admin, &asset);
         let tx_id =
-            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None);
+            client.register_deposit(&relayer, &anchor_id, &stellar, &1i128, &asset, &None, &None, &None);
         let anchor_key = StorageKey::AnchorIdx(anchor_id);
         let tx_key = StorageKey::Tx(tx_id);
         let (ttl_anchor, ttl_tx) = env.as_contract(&contract_id, || {
@@ -839,6 +848,7 @@ mod tests {
             &stellar,
             &1i128,
             &asset,
+            &None,
             &None,
             &None,
         );
@@ -884,6 +894,7 @@ mod tests {
             &stellar,
             &100i128,
             &asset,
+            &None,
             &None,
             &None,
         );
@@ -947,6 +958,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         client.mark_processing(&relayer, &tx_id);
@@ -1005,6 +1017,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         // Cancel the transaction
@@ -1039,6 +1052,7 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer, &anchor_id, &stellar, &100i128, &asset, &None, &None,
+            &None,
         );
 
         client.mark_processing(&relayer, &tx_id);
@@ -1151,6 +1165,7 @@ mod tests {
             &SorobanString::from_str(&env, "USD"),
             &None,
             &None,
+            &None,
         );
     }
 
@@ -1165,6 +1180,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1183,6 +1199,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1204,6 +1221,7 @@ mod tests {
             &SorobanString::from_str(&env, "USD"),
             &None,
             &None,
+            &None,
         );
         client.pause(&admin);
         client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "err"));
@@ -1220,6 +1238,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1239,6 +1258,7 @@ mod tests {
             &Address::generate(&env),
             &100i128,
             &SorobanString::from_str(&env, "USD"),
+            &None,
             &None,
             &None,
         );
@@ -1352,7 +1372,7 @@ mod tests {
     }
 
     #[test]
-    fn test_register_deposit_emits_deposit_registered_with_relayer() {
+    fn test_finalize_settlement_emits_settlement_created() {
         let env = Env::default();
         let (admin, contract_id) = setup(&env);
         let client = SynapseContractClient::new(&env, &contract_id);
@@ -1362,21 +1382,31 @@ mod tests {
         client.add_asset(&admin, &asset);
         let tx_id = client.register_deposit(
             &relayer,
-            &SorobanString::from_str(&env, "dr-anchor-1"),
+            &SorobanString::from_str(&env, "sc-anchor-1"),
             &Address::generate(&env),
             &100_000_000i128,
             &asset,
             &None,
             &None,
         );
+        client.mark_processing(&relayer, &tx_id);
+        client.mark_completed(&relayer, &tx_id);
+        let settlement_id = client.finalize_settlement(
+            &relayer,
+            &asset,
+            &soroban_sdk::vec![&env, tx_id],
+            &100_000_000i128,
+            &0u64,
+            &1u64,
+        );
         let events = env.events().all();
         let found = events.iter().any(|(_, _, data)| {
-            if let Ok((event, _)) = <(Event, u32)>::try_from_val(&env, &data) {
-                event == Event::DepositRegistered(tx_id.clone(), relayer.clone())
+            if let Ok((event, _ledger)) = <(Event, u32)>::try_from_val(&env, &data) {
+                event == Event::SettlementCreated(settlement_id.clone())
             } else {
                 false
             }
         });
-        assert!(found, "DepositRegistered event not emitted with correct relayer");
+        assert!(found, "SettlementCreated event not emitted");
     }
 }
