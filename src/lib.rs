@@ -246,7 +246,7 @@ impl SynapseContract {
         deposits::index_anchor_id(&env, &anchor_transaction_id, &id);
         emit(
             &env,
-            Event::DepositRegistered(id.clone(), anchor_transaction_id),
+            Event::DepositRegistered(id.clone(), caller),
         );
         id
     }
