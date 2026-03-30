@@ -238,6 +238,12 @@ pub mod deposits {
             .persistent()
             .get(&StorageKey::AnchorIdx(anchor_id.clone()))
     }
+
+    pub fn anchor_exists(env: &Env, anchor_id: &SorobanString) -> bool {
+        env.storage()
+            .persistent()
+            .has(&StorageKey::AnchorIdx(anchor_id.clone()))
+    }
 }
 
 pub mod settlements {

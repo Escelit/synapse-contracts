@@ -1,5 +1,5 @@
 use crate::types::Event;
-use soroban_sdk::{symbol_short, Address, Env};
+use soroban_sdk::{symbol_short, Env};
 
 // TODO(#67): include caller address in every event for attribution
 
